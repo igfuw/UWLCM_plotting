@@ -46,9 +46,9 @@ foreach(exe drawbicyc plot_series_compare average)
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
   )
   # enabling c++14
-  target_compile_features(${exe} PUBLIC cxx_std_14)
-  # enabling c++11
-  # target_compile_features(${exe} PUBLIC cxx_std_11)
+  #target_compile_features(${exe} PUBLIC cxx_std_14)
+  #enabling c++11
+  target_compile_features(${exe} PUBLIC cxx_std_11)
   target_link_libraries(${exe} PRIVATE uwlcm::uwlcm_includes)
   target_link_libraries(${exe} PRIVATE ${HDF5_LIBRARIES})
   target_include_directories(${exe} PUBLIC ${HDF5_INCLUDE_DIRS})
