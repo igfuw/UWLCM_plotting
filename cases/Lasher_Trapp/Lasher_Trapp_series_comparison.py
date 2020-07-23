@@ -12,7 +12,8 @@ from plot_series import *
 # activate latex text rendering
 rc('text', usetex=True)
 
-Lasher_Trapp_vars = ["lwp", "rwp", "surf_precip", "acc_precip", "cl_nc"]
+##Lasher_Trapp_vars = ["lwp", "rwp", "surf_precip", "acc_precip", "cl_nc"]
+Lasher_Trapp_vars = ["RH_max", "cloud_top_height", "surf_precip", "acc_precip", "acc_vol_precip"]
 
 # init the plot
 nplotx = 2

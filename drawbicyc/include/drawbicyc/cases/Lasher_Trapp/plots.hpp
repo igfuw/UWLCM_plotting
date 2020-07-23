@@ -2,22 +2,25 @@
 
 
 const std::vector<std::string> series_Lasher_Trapp({
-  "clfrac",
-  "lwp",
-  "rwp",
-  "surf_precip",
-  "acc_precip",
-  "cl_nc",
+  //"clfrac",
+  //"lwp",
+  //"rwp",
+  //"surf_precip",
+  //"acc_precip",
+  //"acc_vol_precip",
+  //"cl_nc",
   "cloud_base",
-  "surf_flux_latent",
-  "surf_flux_sensible",
-  "sd_conc_avg",
+  //"RH_max",
+  "cloud_top_height",
+  //"surf_flux_latent",
+  //"surf_flux_sensible",
+  //"sd_conc_avg",
   //"mass_dry",
-  "cl_gccn_conc",
-  "gccn_conc",
-  "cl_non_gccn_conc",
-  "non_gccn_conc",
-  "cl_gccn_to_non_gccn_conc_ratio"
+  //"cl_gccn_conc",
+  //"gccn_conc",
+  //"cl_non_gccn_conc",
+  //"non_gccn_conc",
+  //"cl_gccn_to_non_gccn_conc_ratio"
   //, "cl_gccn_meanr"
   //,"cl_avg_cloud_rad"
   // "sd_conc_std_dev",

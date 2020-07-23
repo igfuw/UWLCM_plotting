@@ -82,7 +82,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 
     for (int at = first_timestep; at <= last_timestep; ++at) // TODO: mark what time does it actually mean!
     {
-      res_pos(at) = at * n["outfreq"] * n["dt"] / 3600.;
+      res_pos(at) = at * n["outfreq"] * n["dt"] /3600.;
       // store accumulated precip volume
       prec_vol_prev = prec_vol;
       try
@@ -147,6 +147,27 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           auto stats = plotter.cloud_ract_stats_timestep(at * n["outfreq"]);
           res_prof(at) = stats.first;
           res_prof_std_dev(at) = stats.second;
+        }
+        catch(...) {;}
+      }
+      // cloud top height
+      else if (plt =="cloud_top_height")
+      {
+        try
+        {
+          // cloud fraction (cloudy if ql > 1e-4))
+          auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap = iscloudy_rc(snap);
+          plotter.k_i = blitz::last((snap == 1), plotter.LastIndex);
+          auto cloudy_column = plotter.k_i.copy();
+          cloudy_column = blitz::sum(snap, plotter.LastIndex);
+          cloudy_column = where(cloudy_column > 0, 1, 0);
+          plotter.k_i = where(cloudy_column == 0, 0, plotter.k_i);
+          if(blitz::sum(cloudy_column) > 0)
+           res_prof(at) = blitz::max(plotter.k_i)*n["dz"];
+         else
+           res_prof(at) = 0;
         }
         catch(...) {;}
       }
@@ -569,6 +590,15 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           res_prof(at) = plotter.calc_acc_surf_precip(prec_vol);
+        }
+        catch(...) {;}
+      }
+      else if (plt == "acc_vol_precip")
+      {
+        // accumulated volume precipitation[m^3]
+        try
+        { 
+         res_prof(at) = plotter.calc_acc_volume_precip(prec_vol);
         }
         catch(...) {;}
       }
@@ -1184,6 +1214,10 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       res_pos *= 60.;
     }
     else if (plt == "RH_max")
+    {
+      res_pos *= 60.;
+    }
+    else if (plt == "cloud_top_height")
     {
       res_pos *= 60.;
     }

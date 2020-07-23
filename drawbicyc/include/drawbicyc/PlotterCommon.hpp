@@ -10,7 +10,7 @@ class PlotterCommon
   const string file;
   std::map<std::string, double> map;
   blitz::Array<float, 1> timesteps, p_e;
-  double CellVol, DomainSurf;
+  double CellVol, DomainSurf, DomainVolume;
 
   protected:
   H5::H5File h5f;

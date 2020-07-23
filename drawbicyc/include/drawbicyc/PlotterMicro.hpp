@@ -307,7 +307,16 @@ class PlotterMicro_t : public Plotter_t<NDims>
                      / 1e3         // to m^3 of water
                      * 1e3;        // to mm
   }
-
+  // accumulated volume precipitation [m^3]
+  double calc_acc_volume_precip(double prec_vol)
+  {
+    if(this->micro == "lgrngn")
+      return prec_vol / this->DomainVolume;
+    if(this->micro == "blk_1m")
+      return prec_vol * this->map["dt"]
+                    / (this->map["x"] * this->map["y"] * this->map["z"])
+                    / 1e3;         // to m^3 of water
+  }
   //ctor
   PlotterMicro_t(const string &file, const string &micro):
     parent_t(file),
