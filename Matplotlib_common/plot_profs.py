@@ -19,7 +19,8 @@ def plot_profiles(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, yscale
       print file_name
     #  try:
       profiles_file = open(file_name, "r")
-      my_pos = read_my_var(profiles_file, "position")
+      ## my_pos = read_my_var(profiles_file, "position")
+      my_pos = read_my_var(profiles_file, "time")
       my_res = read_my_var(profiles_file, var)
       profiles_file.close()
 
