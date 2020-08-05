@@ -56,10 +56,10 @@ for cusc_iter in [0,1,2]: # stratocumulus, cumulus, cumulus no mix,
     file_labels.append(sys.argv[no+1])
   
   print file_names
-  plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series[cusc_iter], ylimdict_series, xlabel='Time [h]', file_names=file_names, file_labels=file_labels)
+  plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series[cusc_iter], ylimdict_series, xlabel='Time [h]', file_names=file_names, file_labels=file_labels, linewidth=1.5)
 
 # legend font size
-plt.rcParams.update({'font.size': 8})
+plt.rcParams.update({'font.size': 10})
 
 #axes = plt.gca()
 #axes.tick_params(direction='in')
@@ -72,12 +72,14 @@ for y in y_arr:
   axarr[y].xaxis.set_minor_locator(AutoMinorLocator())
   axarr[y].yaxis.set_minor_locator(AutoMinorLocator())
   #labels and tics font size
-  for item in ([axarr[y].xaxis.label, axarr[y].yaxis.label] + axarr[y].get_xticklabels() + axarr[y].get_yticklabels()):
+  for item in (axarr[y].get_xticklabels() + axarr[y].get_yticklabels()):
     item.set_fontsize(8)
+  for item in ([axarr[y].xaxis.label, axarr[y].yaxis.label]):
+    item.set_fontsize(10)
   # subplot numbering
 #    if y < nploty - nemptyplots or x < (nplotx - 1):
  #     axarr[y].text(0.8, 0.9, labeldict[y + x*nploty], fontsize=8, transform=axarr[y].transAxes)
-  axarr[y].text(0.05, 0.85, labeldict[y], fontsize=8, transform=axarr[y].transAxes)
+  axarr[y].text(0.05, 0.85, labeldict[y], fontsize=10, transform=axarr[y].transAxes)
 
 axarr[1].set_ylabel('')
 axarr[2].set_ylabel('')
@@ -103,7 +105,7 @@ fig.set_size_inches(7.874, 2. + (len(labels) ) * 0.34)# 5.214)#20.75,13.74)
 #distances between subplots and from bottom of the plot
 #fig.subplots_adjust(bottom=0. + (len(labels) ) * 0.044, hspace=0, wspace=0.4)
 
-fig.tight_layout(pad=0, w_pad=1, h_pad=0, rect=(0,0.2,1,1))
+fig.tight_layout(pad=0, w_pad=1, h_pad=0, rect=(0,0.3,1,1))
 
 #figure size
 #fig.set_size_inches(7.874, 6 + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)

@@ -295,7 +295,13 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
   {
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
-    gp << "set title 'SGS TKE [m^2 / s^2]'\n";
+    gp << "set title 'SGS TKE (Smg) [m^2 / s^2]'\n";
+  }
+  else if (plt == "sgs_tke_sd")
+  {
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
+    gp << "set title 'SGS TKE (SD) [m^2 / s^2]'\n";
   }
   else if (plt == "clb_bigrain_mean_inclt")
   {
