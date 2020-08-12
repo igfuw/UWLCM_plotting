@@ -12,7 +12,7 @@ from plot_series import *
 # activate latex text rendering
 rc('text', usetex=True)
 
-Lasher_Trapp_vars = ["lwp", "rwp", "surf_precip", "acc_precip", "cl_nc"]
+Lasher_Trapp_vars = ["RH_max", "cloud_top_height", "surf_precip", "acc_precip", "acc_vol_precip"]
 
 # init the plot
 nplotx = 2
@@ -28,7 +28,7 @@ plt.rcParams.update({'font.size': 8})
 if len( Lasher_Trapp_vars) % nploty == 0:
   nemptyplots = 0
 else:
-  nemptyplots = nploty - len( Lasher_Trapp_vars) % nploty
+  nemptyplots = nploty - len( ICMW2020_vars) % nploty
   emptyplots = np.arange(nploty - nemptyplots, nploty)
 for empty in emptyplots:
   axarr[nplotx-1, empty].axis('off')

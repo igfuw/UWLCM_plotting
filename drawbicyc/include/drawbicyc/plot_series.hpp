@@ -501,16 +501,10 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // Total number of Cloud and Rain Droplets
         try
         {
-          // cloud fraction (cloudy if ql > 1e-5))
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at *n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("all_rw_mom0", at *n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           snap *= rhod * plotter.CellVol;
-          auto tmp2 = plotter.h5load_timestep("rain_rw_mom0", at *n["outfreq"]);
-          typename Plotter_t::arr_t snap2(tmp2);
-          snap2 *= rhod * plotter.CellVol;
-          auto tmp3 = plotter.h5load_timestep("all_rw_mom0", at *n["outfreq"]);
-          typename Plotter_t::arr_t snap3(tmp3);
-          res_prof(at) = blitz::sum(snap3);// + blitz::sum(snap2);
+          res_prof(at) = blitz::sum(snap);
         }
         catch(...){;}
       }
@@ -617,7 +611,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // accumulated volume precipitation[m^3]
         try
         { 
-         res_prof(at) = plotter.calc_acc_volume_precip(prec_vol);
+         res_prof(at) = plotter.calc_acc_surf_precip_volume(prec_vol);
         }
         catch(...) {;}
       }
@@ -627,9 +621,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           {
-            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);// kg/kg * 1e3; //g/kg
+            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; //g/kg
             typename Plotter_t::arr_t snap(tmp); 
-            snap += plotter.h5load_rr_timestep(at * n["outfreq"]);// kg/kg * 1e3; //g/kg
+            snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; //g/kg
             snap *= rhod; // water per cubic metre (should be wet density...)
             res_prof(at) = blitz::mean(snap); 
           }
@@ -656,7 +650,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         {
           {
             typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-            snap *= rhod; //kg/kg *1e3; // water per cubic metre (should be wet density ...) & g/kg
+            snap *= rhod *1e3; // water per cubic metre (should be wet density ...) & g/kg
             res_prof(at) = blitz::mean(snap);
           }
         }
@@ -671,8 +665,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
             auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
             snap += plotter.h5load_rr_timestep(at * n["outfreq"]);
-            snap *= rhod;
-            res_prof(at) = blitz::sum(snap) * plotter.DomainSurf;
+            snap *= rhod * plotter.CellVol;
+            res_prof(at) = blitz::sum(snap) + blitz::sum(snap(plotter.hrzntl_slice(0))/2) + 
+                 blitz::sum(snap(plotter.hrzntl_slice(-1))/2);
           }
         }
         catch(...) {;}

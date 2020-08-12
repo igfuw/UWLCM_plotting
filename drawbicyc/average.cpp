@@ -49,7 +49,8 @@ void average(int argc, char* argv[], int wtp, std::vector<std::string> types, st
   int ver = double(types.size()) / 4. + 0.99999;
   init_prof(gp, ofile + string(".svg"), ver, hor); 
 
-  types.insert(types.begin(), "position");
+ // types.insert(types.begin(), "position");
+  types.insert(types.begin(), "time");
 
   int prof_ctr = 0;
 
@@ -115,8 +116,9 @@ void average(int argc, char* argv[], int wtp, std::vector<std::string> types, st
     avg = where(weight > 0, avg / weight, 0);
     //std_dev = where(weight > 0, sqrt(std_dev / weight - avg * avg), 0); // without the Bessel correction
     std_dev = where(weight > 0, sqrt(weight / (weight - 1) * (std_dev / weight - avg * avg)), 0); // with the Bessel correction
-    if(plt == "position")
-      pos = avg;
+    //if(plt == "position")
+    if(plt == "time")
+    pos = avg;
     else
     {
       gp << "plot '-' with l \n";

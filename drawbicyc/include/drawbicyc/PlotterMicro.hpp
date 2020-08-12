@@ -308,10 +308,10 @@ class PlotterMicro_t : public Plotter_t<NDims>
                      * 1e3;        // to mm
   }
   // accumulated volume precipitation [m^3]
-  double calc_acc_volume_precip(double prec_vol)
+  double calc_acc_surf_precip_volume(double prec_vol)
   {
     if(this->micro == "lgrngn")
-      return prec_vol / this->DomainVolume;
+      return prec_vol / this->DomainSurf * calc_acc_surf_precip(prec_vol); //DomainVolume;
     if(this->micro == "blk_1m")
       return prec_vol * this->map["dt"]
                     / (this->map["x"] * this->map["y"] * this->map["z"])

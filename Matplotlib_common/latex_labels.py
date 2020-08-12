@@ -7,7 +7,7 @@ var_labels = {
   "rwm" : 'RWM [kg]',
   "surf_precip" : 'Surface precip. [mm/day]',
   "acc_precip" : 'Accumulated precip. [mm]',
-  "acc_vol_precip" : 'Accumulated volume precipitation [m^3]',
+  "acc_precip_vol" : 'Accumulated precip. [m^3]',
   "cl_nc" : '$N_c$ [cm$^{-3}$] (cloudy cells)',
   "cl_nr" : '$N_{r>25\mu m}$ [cm$^{-3}$]',
   "cl_gccn_conc" : '$N_{GCCN}$ [cm$^{-3}$] (cloudy cells)',

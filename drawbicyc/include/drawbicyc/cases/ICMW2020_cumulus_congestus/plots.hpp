@@ -1,31 +1,23 @@
 #pragma once
 
 
-const std::vector<std::string> series_Lasher_Trapp({
-  "clfrac",
+const std::vector<std::string> series_ICMW2020({
   "lwp",
   "rwp",
+  "cwp",
+  "lwm",
+  "cwm",
+  "rwm",
   "surf_precip",
   "acc_precip",
-  "cl_nc",
+  "acc_precip_vol",
   "cloud_base",
   "RH_max",
-  "surf_flux_latent",
-  "surf_flux_sensible",
-  "sd_conc_avg",
-  "mass_dry",
-  "cl_gccn_conc",
-  "gccn_conc",
-  "cl_non_gccn_conc",
-  "non_gccn_conc",
-  "cl_gccn_to_non_gccn_conc_ratio",
-  "cl_gccn_meanr",
-  "cl_avg_cloud_rad"
-  // "sd_conc_std_dev",
- // "tot_water"
+  "cloud_top_height",
+  "total_droplets_number"
 });
  
-std::vector<std::string> profs_Lasher_Trapp({
+std::vector<std::string> profs_ICMW2020({
   "00rtot",
   "rliq",
   "thl",
@@ -49,7 +41,7 @@ std::vector<std::string> profs_Lasher_Trapp({
   //, "nc_down"
 });
 
-std::vector<std::string> fields_Lasher_Trapp({
+std::vector<std::string> fields_ICMW2020({
   "rl",
   "nc",
   "rr",

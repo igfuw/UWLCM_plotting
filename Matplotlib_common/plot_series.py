@@ -22,9 +22,7 @@ def plot_series(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledi
       my_res = read_my_var(series_file, var)
       
       # rescale time to hours
-      #my_times = my_times / 3600. ##H
-      my_times = my__times / 60.  ##Minutes
-      
+      my_times = my_times / 3600. ##H
       series_file.close()
   
       linestyles = ['--', '-.', ':']
