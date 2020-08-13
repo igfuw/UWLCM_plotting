@@ -912,6 +912,26 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...) {;}
       }
+      else if (plt == "sgs_tke_sd") // TKE of SGS motion of SD (turb_adve) 
+      {
+        try
+        {
+          typename Plotter_t::arr_t tot_m0(plotter.h5load_timestep("aerosol_rw_mom0", at * n["outfreq"]));
+          tot_m0 += typename Plotter_t::arr_t(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          tot_m0 += typename Plotter_t::arr_t(plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]));
+
+          typename Plotter_t::arr_t tke(plotter.h5load_timestep("all_up_mom2", at * n["outfreq"]));
+          tke += typename Plotter_t::arr_t(plotter.h5load_timestep("all_wp_mom2", at * n["outfreq"]));
+
+          if (Plotter_t::n_dims > 2)
+            tke += typename Plotter_t::arr_t(plotter.h5load_timestep("all_vp_mom2", at * n["outfreq"]));
+
+          tke = blitz::where(tot_m0 > 0., 0.5 * tke / tot_m0, 0); // tke in each cell
+
+          res_prof(at) = blitz::sum(tke) / blitz::count(tot_m0 > 0.);
+        }
+        catch(...) {;}
+      }
       else if (plt == "cl_gccn_conc")
       {
 	// gccn (r_d > 2 um) concentration in cloudy grid cells

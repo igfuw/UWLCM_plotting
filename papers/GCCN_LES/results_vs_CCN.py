@@ -41,16 +41,16 @@ for ccn_iter in [0,1,2]: # clean, standard, polluted
   
   print file_names
   if ccn_iter == 0:
-    my_ylabels = {  "surf_precip" : 'Surface precip. [mm/day]' }
-    plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]', ylabeldict=my_ylabels, file_names=file_names, file_labels=file_labels)
+    my_ylabels = {  "surf_precip" : 'surface precipitation rate [mm/day]' }
+    plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]', ylabeldict=my_ylabels, file_names=file_names, file_labels=file_labels, linewidth=1.5)
 #    plot_iter = plot_profiles(profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='cloudy column height [m]', file_names=file_names, file_labels=file_labels)
   else:
     my_ylabels = {  "surf_precip" : '' }
-    plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]', ylabeldict=my_ylabels, file_names=file_names, file_labels=file_labels)
+    plot_iter = plot_series(series, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]', ylabeldict=my_ylabels, file_names=file_names, file_labels=file_labels, linewidth=1.5)
 #    plot_iter = plot_profiles(profs, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_profs, ylimdict_profs, ylabel='', file_names=file_names, file_labels=file_labels)
 
 # legend font size
-plt.rcParams.update({'font.size': 8})
+plt.rcParams.update({'font.size': 10})
 
 #axes = plt.gca()
 #axes.tick_params(direction='in')
@@ -63,12 +63,14 @@ for y in y_arr:
   axarr[y].xaxis.set_minor_locator(AutoMinorLocator())
   axarr[y].yaxis.set_minor_locator(AutoMinorLocator())
   #labels and tics font size
-  for item in ([axarr[y].xaxis.label, axarr[y].yaxis.label] + axarr[y].get_xticklabels() + axarr[y].get_yticklabels()):
+  for item in (axarr[y].get_xticklabels() + axarr[y].get_yticklabels()):
     item.set_fontsize(8)
+  for item in ([axarr[y].xaxis.label, axarr[y].yaxis.label]):
+    item.set_fontsize(10)
   # subplot numbering
 #    if y < nploty - nemptyplots or x < (nplotx - 1):
  #     axarr[y].text(0.8, 0.9, labeldict[y + x*nploty], fontsize=8, transform=axarr[y].transAxes)
-  axarr[y].text(0.05, 0.92, labeldict[y], fontsize=8, transform=axarr[y].transAxes)
+  axarr[y].text(0.05, 0.92, labeldict[y], fontsize=10, transform=axarr[y].transAxes)
 
 ## show legends
 #for x in np.arange(nplotx):
@@ -85,7 +87,7 @@ fig.set_size_inches(7.874, 2. + (len(labels) ) * 0.34)# 5.214)#20.75,13.74)
 #distances between subplots and from bottom of the plot
 #fig.subplots_adjust(bottom=0.14 + (len(labels) ) * 0.044, hspace=0, wspace=0.4)
 
-fig.tight_layout(pad=0, w_pad=1, h_pad=0, rect=(0,0.25,1,1))
+fig.tight_layout(pad=0, w_pad=1, h_pad=0, rect=(0,0.3,1,1))
 
 #figure size
 #fig.set_size_inches(7.874, 6 + (len(labels) - 2) * 0.2)# 5.214)#20.75,13.74)

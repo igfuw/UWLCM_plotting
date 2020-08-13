@@ -1,10 +1,13 @@
 var_labels = {
+
   "lwp" : 'LWP [kg m$^{-2}$]',
   "rwp" : 'RWP [kg m$^{-2}$]',
   "cwp" : 'CWP [kg m$^{-2}$]',
   "lwm" : 'LWM [kg]',
   "cwm" : 'CWM [kg]',
   "rwm" : 'RWM [kg]',
+  "sgs_tke" : 'SGS TKE (Smagorinsky) [m$^{2}$ s$^{-2}$]',
+  "sgs_tke_sd" : 'SGS TKE (Super-droplets) [m$^{2}$ s$^{-2}$]',
   "surf_precip" : 'Surface precip. [mm/day]',
   "acc_precip" : 'Accumulated precip. [mm]',
   "acc_precip_vol" : 'Accumulated precip. [m^3]',
