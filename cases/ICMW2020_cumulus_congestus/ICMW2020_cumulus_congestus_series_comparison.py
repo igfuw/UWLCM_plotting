@@ -12,20 +12,20 @@ from plot_series import *
 # activate latex text rendering
 rc('text', usetex=True)
 
-Lasher_Trapp_vars = ["RH_max", "cloud_top_height", "surf_precip", "acc_precip", "acc_vol_precip"]
+ICMW2020_vars = ["RH_max", "cloud_top_height", "surf_precip", "acc_precip", "acc_vol_precip"]
 
 # init the plot
 nplotx = 2
 nploty= 3
 fig, axarr = plt.subplots(nplotx,nploty)
 
-plot_series( Lasher_Trapp_vars, 0, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]')
+plot_series( ICMW2020_vars, 0, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]')
 
 # legend font size
 plt.rcParams.update({'font.size': 8})
 
 # hide axes on empty plots
-if len( Lasher_Trapp_vars) % nploty == 0:
+if len( ICMW2020_vars) % nploty == 0:
   nemptyplots = 0
 else:
   nemptyplots = nploty - len( ICMW2020_vars) % nploty
