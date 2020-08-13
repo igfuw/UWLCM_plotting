@@ -611,7 +611,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // accumulated volume precipitation[m^3]
         try
         { 
-         res_prof(at) = plotter.calc_acc_surf_precip_volume(prec_vol);
+         res_prof(at) = plotter.calc_acc_surf_precip__volume(prec_vol);
         }
         catch(...) {;}
       }
@@ -666,8 +666,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
             typename Plotter_t::arr_t snap(tmp);
             snap += plotter.h5load_rr_timestep(at * n["outfreq"]);
             snap *= rhod * plotter.CellVol;
-            res_prof(at) = blitz::sum(snap) + blitz::sum(snap(plotter.hrzntl_slice(0))/2) + 
-                 blitz::sum(snap(plotter.hrzntl_slice(-1))/2);
+            res_prof(at) = blitz::sum(snap);// + blitz::sum(snap(plotter.hrzntl_slice(0))/2) +  blitz::sum(snap(plotter.hrzntl_slice(-1))/2);
           }
         }
         catch(...) {;}
@@ -680,8 +679,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           { 
             auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
-            snap *= rhod;
-            res_prof(at) = blitz::sum(snap) * plotter.DomainSurf;
+            snap *= rhod * plotter.CellVol;
+            res_prof(at) = blitz::sum(snap);
           }
         }
         catch(...) {;}
@@ -694,8 +693,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           { 
             auto tmp = plotter.h5load_rr_timestep(at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
-            snap *= rhod;
-            res_prof(at) = blitz::sum(snap) * plotter.DomainSurf;
+            snap *= rhod * plotter.CellVol;
+            res_prof(at) = blitz::sum(snap);
           }
         }
         catch(...) {;}

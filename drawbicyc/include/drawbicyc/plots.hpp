@@ -58,11 +58,11 @@ class Plots
       fields.insert(fields.end(), fields_Lasher_Trapp.begin(), fields_Lasher_Trapp.end());
     }
     else if(type == "ICMW2020") {
-      //profs.insert(profs.end(), profs_ICMW2020.begin(), profs_ICMW2020.end());
+     // profs.insert(profs.end(), profs_ICMW2020.begin(), profs_ICMW2020.end());
       series.insert(series.end(), series_ICMW2020.begin(), series_ICMW2020.end());
-      fields.insert(fields.end(), fields_ICMW2020.begin(), fields_ICMW2020.end());    
+      fields.insert(fields.end(), fields_ICMW2020.begin(), fields_ICMW2020.end());
     }
-    /*
+ /*
     else if(type == "base_prflux_vs_clhght") { 
       profs.insert(profs.end(), profs_base_prflux_vs_clhght.begin(), profs_base_prflux_vs_clhght.end());
     }*/
