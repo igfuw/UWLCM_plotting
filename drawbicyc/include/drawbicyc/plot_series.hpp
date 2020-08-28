@@ -501,9 +501,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // Total number of Cloud and Rain Droplets
         try
         {
-          auto tmp = plotter.h5load_timestep("all_rw_mom0", at *n["outfreq"]);
+          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at *n["outfreq"]) * rhod;
           typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod * plotter.CellVol;
+          snap *= plotter.CellVol;
           res_prof(at) = blitz::sum(snap);
         }
         catch(...){;}
@@ -637,7 +637,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         {
           {
             typename Plotter_t::arr_t snap(plotter.h5load_rr_timestep(at * n["outfreq"]));
-            snap *= rhod; //kg/kg * 1e3; // water per cubic metre (should be wet density...) & g/kg
+            snap *= rhod* 1e3; // water per cubic metre (should be wet density...) & g/kg
             res_prof(at) = blitz::mean(snap); 
           }
         }
@@ -662,11 +662,18 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           { 
-            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
+            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * rhod;
             typename Plotter_t::arr_t snap(tmp);
-            snap += plotter.h5load_rr_timestep(at * n["outfreq"]);
-            snap *= rhod * plotter.CellVol;
-            res_prof(at) = blitz::sum(snap);// + blitz::sum(snap(plotter.hrzntl_slice(0))/2) +  blitz::sum(snap(plotter.hrzntl_slice(-1))/2);
+            snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * rhod;
+            snap *= plotter.CellVol;
+            snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
+            snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
+            //auto slice = snap(plotter.hrzntl_slice(0))/2; + snap(plotter.hrzntl_slice(-1))/2; 
+            //plotter.k_i2 = snap(plotter.hrzntl_slice(-1)/2);
+                    //snap += blitz::snap(plotter.hrzntl_slice(0)/2);
+            //snap += blitz::snap(plotter.hrzntl_slice(-1)/2);
+            //res_prof(at) = blitz::sum(snap(plotter.hirzntl_slice(0)))/2 +  blitz::sum(snap(plotter.hrzntl_slice(-1)))/2;
+            res_prof(at) = blitz::sum( snap);// + blitz::sum(slice);///blitz::sum(snap(plotter.hrzntl_slice(0))/2 + snap(plotter.hrzntl_slice(-1))/2 + snap);
           }
         }
         catch(...) {;}
@@ -680,6 +687,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
             auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
             snap *= rhod * plotter.CellVol;
+            snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
+            snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
             res_prof(at) = blitz::sum(snap);
           }
         }
@@ -694,6 +703,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
             auto tmp = plotter.h5load_rr_timestep(at * n["outfreq"]);
             typename Plotter_t::arr_t snap(tmp);
             snap *= rhod * plotter.CellVol;
+            snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
+            snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
             res_prof(at) = blitz::sum(snap);
           }
         }
@@ -1331,18 +1342,18 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
     {
       res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
     }
-    else if (plt == "lwm")
-    {
-      res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
-    }
-    else if (plt == "cwm")
-    {
-      res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
-    }
-    else if (plt == "rwm")
-    {
-      res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
-    }
+   // else if (plt == "lwm")
+   // {
+   //  res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+   // }
+   // else if (plt == "cwm")
+   // {
+   //   res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+   // }
+   // else if (plt == "rwm")
+   // {
+   //   res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+   // }
     else if (plt == "er")
     {
       // central difference, in cm
