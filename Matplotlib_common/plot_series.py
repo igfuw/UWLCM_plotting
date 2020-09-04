@@ -17,8 +17,8 @@ def plot_series(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledi
     for file_name in file_names:
       print file_name, var
       series_file = open(file_name, "r")
-      #my_times = read_my_var(series_file, "position")
-      my_time = read_my_var(series_file, "time")
+      my_times = read_my_var(series_file, "position")
+      #my_time = read_my_var(series_file, "time")
       my_res = read_my_var(series_file, var)
       
       # rescale time to hours

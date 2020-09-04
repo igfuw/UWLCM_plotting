@@ -64,8 +64,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
     com_x_idx(last_timestep - first_timestep + 1); // index of the center of mass cell
 
   // save time steps to the series file
-  //oprof_file << "position" << endl;
-  oprof_file << "time" << endl;
+  oprof_file << "position" << endl;
+  //oprof_file << "time" << endl;
   oprof_file << plotter.timesteps;
 
 
@@ -503,8 +503,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         {
           auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at *n["outfreq"]) * rhod;
           typename Plotter_t::arr_t snap(tmp);
-          snap *= plotter.CellVol;
-          res_prof(at) = blitz::sum(snap);
+          auto tmp2 = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap2(tmp2);
+          res_prof(at) = (blitz::sum(snap) + blitz::sum(snap2))*plotter.CellVol;
         }
         catch(...){;}
       }
@@ -611,7 +612,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // accumulated volume precipitation[m^3]
         try
         { 
-         res_prof(at) = plotter.calc_acc_surf_precip__volume(prec_vol);
+         res_prof(at) = plotter.calc_acc_surf_precip_volume(prec_vol);
         }
         catch(...) {;}
       }

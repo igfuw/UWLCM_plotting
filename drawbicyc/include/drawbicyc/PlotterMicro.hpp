@@ -308,14 +308,12 @@ class PlotterMicro_t : public Plotter_t<NDims>
                      * 1e3;        // to mm
   }
   // accumulated volume precipitation [m^3]
-  double calc_acc_surf_precip__volume(double prec_vol)
+  double calc_acc_surf_precip_volume(double prec_vol)
   {
     if(this->micro == "lgrngn")
-      return prec_vol / this->DomainSurf * calc_acc_surf_precip(prec_vol);
+      return calc_acc_surf_precip(prec_vol) * this->DomainSurf / 1000.;
     if(this->micro == "blk_1m")
-      return prec_vol * this->map["dt"]
-                    / (this->map["x"] * this->map["y"] * this->map["z"])
-                    / 1e3;         // to m^3 of water
+      return calc_acc_surf_precip(prec_vol) * this->DomainSurf / 1000.;// to m^3 of water
   }
   //ctor
   PlotterMicro_t(const string &file, const string &micro):
