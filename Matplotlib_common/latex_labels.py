@@ -37,7 +37,13 @@ var_labels = {
   "clb_bigrain_mean_kappa" : '$\kappa$ of (r$>$40um) @ clbase',
   "clb_bigrain_mean_conc" : 'conc. of (r$>$40um) @ clbase [1/cc]',
   "clb_bigrain_mean_inclt" : 'time since act. of (r$>$40um) @ clbase [s]',
-  "clb_bigrain_mean_gccn_fraction" : 'frac. of (r$>$40um) on gccn @ clbase'
+  "clb_bigrain_mean_gccn_fraction" : 'frac. of (r$>$40um) on gccn @ clbase',
+  "N_c" : 'number concentration of droplets n [#]',
+  "rliq" : 'liquid water content LWC',
+  "actrw_reff_cl" : 'effective radius [um]',
+  "ratio_mean_volue_r_to_eff_r_cubed" : 'ratio of mean volume radius to effective radius cubed',
+  "cloud_std_dev" : 'standard deviation'
+
 }
 
 

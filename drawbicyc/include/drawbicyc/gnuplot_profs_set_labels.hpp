@@ -76,6 +76,19 @@ void gnuplot_profs_set_labels(Gnuplot &gp, std::string plt, const bool normalize
   {
     gp << "set title 'activated (rw>rc) droplets mean dry radius'\n";
   }
+  if (plt == "actrw_reff_cl")
+  {
+    gp << "set title 'activated (rw>rc) effective radius'\n";
+  }
+   if (plt == "cloud_std_dev")
+  {
+    gp << "set title 'standard deviation'\n";
+  } 
+  if (plt == "ratio_mean_volue_r_to_eff_r_cubed")
+  {
+    gp << "set title 'ratio of mean volume radius to effective radius cubed'\n";
+  }
+
   else if (plt == "rv")
   {
     gp << "set title 'rv [g/kg] averaged over 2h-6h, w/o rw<0.5um'\n";

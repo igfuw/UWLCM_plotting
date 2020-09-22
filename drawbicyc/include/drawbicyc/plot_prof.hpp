@@ -66,7 +66,10 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
     blitz::secondIndex j;
     typename Plotter_t::arr_t res(rhod.shape());
     typename Plotter_t::arr_t res_tmp(rhod.shape());
+    typename Plotter_t::arr_t res_tmp1(rhod.shape());
     typename Plotter_t::arr_t res_tmp2(rhod.shape());
+    typename Plotter_t::arr_t res_tmp3(rhod.shape());
+    typename Plotter_t::arr_t res_tmp4(rhod.shape());
     blitz::Array<float, 1> res_prof_sum(n["z"]);  // profile interpolate to the uniform grid summed over timesteps
     blitz::Array<float, 1> res_prof(n["z"]);      // profile interpolate to the uniform grid
     blitz::Array<float, 1> res_prof_hlpr(n["z"]); // actual profile
@@ -85,7 +88,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       if (plt == "rliq")
       {
 	// liquid water content
-        res += plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
+        //res += plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
         res += plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
         res += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
@@ -309,6 +312,65 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         // mean only over downdraught cells
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+      }
+      if (plt == "ratio_mean_volue_r_to_eff_r_cubed")
+      { 
+         {
+            //auto tmp0 = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
+            res_tmp = snap;
+          }
+          {
+            auto tmp2 = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tmp2);
+            res_tmp2 = snap;
+           }
+           {
+            auto tmp3 = plotter.h5load_timestep("actrw_rw_mom3", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tmp3);
+            res_tmp3 = snap;
+           }
+           {
+            typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+            res_tmp4 = iscloudy_rc_rico(snap);
+           }
+
+           res_tmp = where(res_tmp > 0, res_tmp2 * res_tmp2 * res_tmp2 / res_tmp, 0. );
+           res_tmp = where(res_tmp3 > 0, res_tmp / res_tmp3 / res_tmp3, 0.);
+           res_tmp *= res_tmp4;
+           //mean only over downdraught cells
+           prof_tmp = plotter.horizontal_sum(res_tmp4); // number of downdraft cells on a given level
+           res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+      }
+      if (plt == "cloud_std_dev")
+      {
+          {
+            auto tmp1 = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"] *1e6);
+            typename Plotter_t::arr_t snap(tmp1);
+            res_tmp1 = snap;
+          }
+          {
+            auto tmp2 = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"] *1e12);
+            typename Plotter_t::arr_t snap(tmp2);
+            res_tmp2 = snap;
+          }
+          {
+            auto tmp0 = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tmp0);
+            res_tmp = snap;
+          }
+          {
+            typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+            res_tmp3 = iscloudy_rc_rico(snap);
+          } 
+            res_tmp = where(res_tmp > 0, res_tmp2 / res_tmp - res_tmp1 / res_tmp * res_tmp1 / res_tmp, 0.);
+            res_tmp = where(res_tmp < 0 , 0, res_tmp);
+            res_tmp = sqrt(res_tmp);
+            res_tmp *= res_tmp3; 
+            // mean only over downdraught cells
+            prof_tmp = plotter.horizontal_sum(res_tmp3); // number of downdraft cells on a given level
+            res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+ 
       }
       if (plt == "nc_up")
       {

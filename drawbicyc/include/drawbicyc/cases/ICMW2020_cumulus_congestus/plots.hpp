@@ -35,20 +35,23 @@ const std::vector<std::string> series_ICMW2020({
 std::vector<std::string> profs_ICMW2020({
   "00rtot",
   "rliq",
-  "thl",
-  "wvar",
-  "prflux",
-  "clfrac",
-  "sd_conc",
-  "cl_nc",
-  "cl_nc_up",
-  "w",
-  "u",
-  "v",
-  "base_prflux_vs_clhght",
-  "non_gccn_rw_cl",
-  "gccn_rw_cl,"
-  //, "N_c",
+  // "thl",
+  // "wvar",
+  //"prflux",
+  //"clfrac",
+  //"sd_conc",
+  // "cl_nc",
+  //"cl_nc_up",
+  //"w",
+  //"u",
+  //"v",
+  //"base_prflux_vs_clhght",
+  //"non_gccn_rw_cl",
+  //"gccn_rw_cl,"
+  "N_c",
+  "actrw_reff_cl",
+  "ratio_mean_volue_r_to_eff_r_cubed",
+  "cloud_std_dev"
   //,"vel_div"
   //, "nc_up"
   //,"sat_RH_up"
