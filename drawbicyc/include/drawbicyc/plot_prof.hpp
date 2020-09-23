@@ -345,12 +345,12 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       if (plt == "cloud_std_dev")
       {
           {
-            auto tmp1 = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"] *1e6);
+            auto tmp1 = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]) *1e6;
             typename Plotter_t::arr_t snap(tmp1);
             res_tmp1 = snap;
           }
           {
-            auto tmp2 = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"] *1e12);
+            auto tmp2 = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]) * 1e12;
             typename Plotter_t::arr_t snap(tmp2);
             res_tmp2 = snap;
           }
