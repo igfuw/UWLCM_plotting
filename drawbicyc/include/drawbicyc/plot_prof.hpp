@@ -620,6 +620,59 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         }
         catch(...){;}
       }
+//     else if (plt == "AF")
+//    {
+//	// Adiabatic fraction
+//        try
+//        {
+//          auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4. / 3. * 3.1416 * 1e3; // kg/kg 
+//          typename Plotter::arr_t snap(tmp);      
+//          snap = iscloudy_rc_rico(snap); // cloudiness mask
+//          res = plotter.h5load_RH_timestep(at * n["outfreq"]);
+//          plotter.k_i = blitz::sum(snap, plotter.LastIndex); // sum in the vertical, assumes that all cloudy cells in a column belong to the same cloud
+
+          //Cloud base
+//          plotter.tmp_int_hrzntl_slice = blitz::first(res > 0, plotter.LastIndex); // cloud base hgt over dz
+         
+//          typename Plotter_t::arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
+//          typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
+//          typename Plotter_t::arr_t T = th.copy();
+//          T *= pow(plotter.p_e(plotter.LastIndex) / p_1000, R_d / c_pd);
+          
+//          plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(rv, plotter.tmp_int_hrzntl_slice);  
+//          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(th, plotter.tmp_int_hrzntl_slice);  
+          
+          // NOTE: we assume that k_i and tmp_float_hr... is contiguous in memory
+//          for(int i=0; i<plotter.k_i.size(); ++i)
+//            {
+//              const int cl_hgt_over_dz = *(plotter.k_i.data() + i);
+//              if(cl_hgt_over_dz > 0)
+//                {
+//                  occur_no(cl_hgt_over_dz)+=1;
+//                  res_prof_hlpr(cl_hgt_over_dz) += *(plotter.tmp_float_hrzntl_slice.data() + i);
+//                }
+//            }
+                   
+          // (plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]));
+          // init pressure, from rv just to get correct size
+//          typename Plotter_t::arr_t p(rv); 
+  //        T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
+          // TODO: env pressure should be used below!
+    //      p = rhod * R_d * (1 + 29./18. * rv) * T;  // Rv/Rd = 29/18
+//          res = th / T * (T - ql * L / c_p); 
+//          res += ql;
+//
+//
+//          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+//          snap = iscloudy_rc(snap); // cloudiness mask
+//          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex);
+//
+//          plotter.tmp_int_hrzntl_slice = blitz::first(snap > 0, plotter.LastIndex); // cloud base hgt over dz
+          // precipitation flux(doesnt include vertical velocity w!)
+//          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(th, plotter.tmp_int_hrzntl_slice); // precip flux at cloud base
+//        }
+//        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+//      }
       else if (plt == "thl")
       {
 	// liquid potential temp [K]

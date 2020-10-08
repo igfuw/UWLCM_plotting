@@ -60,15 +60,20 @@ std::vector<std::string> profs_ICMW2020({
 });
 
 std::vector<std::string> fields_ICMW2020({
-  "rl",
+  //"rl",
   "nc",
-  "rr",
-  "nr",
-  //"ef", "na",
-  "th",
-  "rv",
-  "u",
-  "w"
+  "rliq",
+  //"mass_conc_cloud",
+  "ratio_mean_volue_r_to_eff_r_cubed",
+  "cloud_std_dev",
+  //"rr",
+  //"nr",
+  "ef"
+  //"na",
+  //"th",
+  //"rv"
+  //"u",
+  //"w"
   //"sd_conc",//, "r_dry",
   //"RH", "supersat",
 });

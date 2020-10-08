@@ -20,6 +20,9 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
 
   auto& n = plotter.map;
 
+  // read in density
+  typename Plotter_t::arr_t rhod(plotter.h5load(plotter.file + "/const.h5", "G"));
+  
   blitz::firstIndex i;
   blitz::secondIndex j;
   blitz::Range all = blitz::Range::all();
@@ -45,6 +48,18 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){}
       }
+      else if (plt == "mass_conc_cloud")
+      {
+        //mass concentration of cloud droplets qc
+        try{
+        auto tmp = plotter.h5load_timestep("actrw_rc_mom3", at * n["outfreq"]) * 4. / 3 * 3.14 * 1e3 / rhod;
+
+        std::string title = " mass concentration of cloud droplets q_c";
+        gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        plotter.plot(gp, tmp);
+        }
+        catch(...){} 
+      }
       else if (plt == "rr")
       {
         try{
@@ -57,6 +72,17 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
 //	gp << "set cbrange [1e-2:1]\n";
 	plotter.plot(gp, tmp);
 	gp << "unset logscale cb\n";
+        }
+        catch(...){}
+      }
+      else if (plt == "rliq")
+      {
+        // liquid water content
+        try{
+        auto tmp = (plotter.h5load_rc_timestep(at * n["outfreq"]) + plotter.h5load_rr_timestep(at * n["outfreq"])) * 1e3;//cloud + rain
+        std::string title = "liquid water content [g/kg]";
+        gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        plotter.plot(gp, tmp);
         }
         catch(...){}
       }
@@ -114,6 +140,49 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){}
       }
+      else if (plt == "ratio_mean_volue_r_to_eff_r_cubed")
+      {
+        //Ratio of mean radius cubed k
+        try{
+            
+        typename Plotter_t::arr_t tmp(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
+        typename Plotter_t::arr_t tmp2(plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]));
+        typename Plotter_t::arr_t tmp3(plotter.h5load_timestep("actrw_rw_mom3", at * n["outfreq"]));
+        typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        auto tmp4 = iscloudy_rc_rico(snap);
+        
+        auto tmp5 = where(tmp > 0, tmp2 * tmp2 * tmp2 / tmp, 0);
+        auto tmp6 = where(tmp3 > 0, tmp5 / tmp3 / tmp3, 0);
+        auto ratio = tmp6 * tmp4;
+
+        std::string title = "Ratio of mean radius cubed k";
+        gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        plotter.plot(gp, ratio);
+        }
+        catch(...){}
+      }
+      else if (plt == "cloud_std_dev")
+      {
+        //Stadndard deviation of the size distribution
+        try{
+        typename Plotter_t::arr_t tmp1(plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
+        typename Plotter_t::arr_t tmp2(plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]));
+        typename Plotter_t::arr_t tmp0(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
+        typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        auto tmp3 = iscloudy_rc_rico(snap);
+        
+        auto tmp = where(tmp0 > 0, tmp2 / tmp0 - tmp1 / tmp0 * tmp1 / tmp0, 0.);
+        auto tmp4 = where(tmp < 0 , 0, tmp);
+        auto tmp5 = sqrt(tmp4);
+        auto tmp6 = tmp5 * tmp3 * 1e6;
+
+        std::string title = "Standardi deviation of the size distribution [um]";
+        gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        plotter.plot(gp, tmp6);
+        }
+        catch(...){}
+      }
+
 /*
       else if (plt == "na")
       {
