@@ -2,10 +2,11 @@
 # adiabatic rl calculated based on mean th and rv at cloud base cells
 
 from sys import argv, path, maxsize
-path.insert(0, "/home/piotr/usr/local/lib/python2.7/dist-packages/")
-
+path.insert(0,"../../local_folder/uptodate/lib/python3/dist-packages")
 import h5py
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from libcloudphxx import common as lcmn
 
@@ -16,8 +17,13 @@ plt.rcParams.update({'font.size': 20})
 plt.figure(figsize=(16,10))
 
 evap_lat = 2.5e6 # [J/kg] latent heat of evaporation
+timesteps = np.ones(91)
 
-timesteps = [12000, 36000, 72000]
+for i in range(1, 91):
+    timesteps[i] = i*240
+11
+timesteps = timesteps[1:91]
+print(timesteps)
 
 input_dir = argv[1]
 outfile = argv[2]
@@ -29,8 +35,10 @@ dz = h5py.File(input_dir + "/const.h5", "r").attrs["dz"]
 
 for timestep in timesteps:
   plt.clf()
-  print(timestep)
-  filename = input_dir + "/timestep" + str(timestep).zfill(10) + ".h5"
+
+  print(int(timestep))
+  filename = input_dir + "/timestep" + str(int(timestep)).zfill(10) + ".h5"
+
   #rl = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:,:] + h5py.File(filename, "r")["rain_rw_mom3"][:,:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
   rl = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
   nc = h5py.File(filename, "r")["cloud_rw_mom0"][:,:,:] * rhod / 1e6; # 1 / cm^3
@@ -140,7 +148,7 @@ for timestep in timesteps:
   #print nc[nc>0]
   
   plt.plot((AF * cloudy_mask).flatten(), (nc * cloudy_mask).flatten(), '.', markersize=1)
-  plt.xlim(0,10)
+  plt.xlim(0,2)
   plt.ylim(0,200)
   
   plt.xlabel('AF')

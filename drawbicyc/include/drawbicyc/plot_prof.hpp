@@ -68,7 +68,10 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
     blitz::secondIndex j;
     typename Plotter_t::arr_t res(rhod.shape());
     typename Plotter_t::arr_t res_tmp(rhod.shape());
+    typename Plotter_t::arr_t res_tmp1(rhod.shape());
     typename Plotter_t::arr_t res_tmp2(rhod.shape());
+    typename Plotter_t::arr_t res_tmp3(rhod.shape());
+    typename Plotter_t::arr_t res_tmp4(rhod.shape());
     blitz::Array<float, 1> res_prof_sum(n["z"]);  // profile interpolate to the uniform grid summed over timesteps
     blitz::Array<float, 1> res_prof(n["z"]);      // profile interpolate to the uniform grid
     blitz::Array<float, 1> res_prof_hlpr(n["z"]); // actual profile
@@ -87,10 +90,16 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       if (plt == "rliq")
       {
 	// liquid water content
-        res += plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
+        //res += plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
         res += plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
         res += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
-        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        //res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        typename Plotter_t::arr_t rc_mask(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        rc_mask = iscloudy_rc_rico(rc_mask);
+        //res *= rc_mask;
+        //res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+	prof_tmp = plotter.horizontal_sum(rc_mask);
+        res_prof_hlpr = where(prof_tmp > 0, plotter.horizontal_sum(res) / prof_tmp, 0);
       }
       if (plt == "gccn_rw")
       {
@@ -370,6 +379,65 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
       }
+      if (plt == "ratio_mean_volue_r_to_eff_r_cubed")
+      { 
+         {
+            //auto tmp0 = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
+            res_tmp = snap;
+          }
+          {
+            auto tmp2 = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tmp2);
+            res_tmp2 = snap;
+           }
+           {
+            auto tmp3 = plotter.h5load_timestep("actrw_rw_mom3", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tmp3);
+            res_tmp3 = snap;
+           }
+           {
+            typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+            res_tmp4 = iscloudy_rc_rico(snap);
+           }
+
+           res_tmp = where(res_tmp > 0, res_tmp2 * res_tmp2 * res_tmp2 / res_tmp, 0. );
+           res_tmp = where(res_tmp3 > 0, res_tmp / res_tmp3 / res_tmp3, 0.);
+           res_tmp *= res_tmp4;
+           //mean only over downdraught cells
+           prof_tmp = plotter.horizontal_sum(res_tmp4); // number of downdraft cells on a given level
+           res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+      }
+      if (plt == "cloud_std_dev")
+      {
+          {
+            auto tmp1 = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]) *1e6;
+            typename Plotter_t::arr_t snap(tmp1);
+            res_tmp1 = snap;
+          }
+          {
+            auto tmp2 = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]) * 1e12;
+            typename Plotter_t::arr_t snap(tmp2);
+            res_tmp2 = snap;
+          }
+          {
+            auto tmp0 = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tmp0);
+            res_tmp = snap;
+          }
+          {
+            typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+            res_tmp3 = iscloudy_rc_rico(snap);
+          } 
+            res_tmp = where(res_tmp > 0, res_tmp2 / res_tmp - res_tmp1 / res_tmp * res_tmp1 / res_tmp, 0.);
+            res_tmp = where(res_tmp < 0 , 0, res_tmp);
+            res_tmp = sqrt(res_tmp);
+            res_tmp *= res_tmp3; 
+            // mean only over downdraught cells
+            prof_tmp = plotter.horizontal_sum(res_tmp3); // number of downdraft cells on a given level
+            res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+ 
+      }
       if (plt == "nc_up")
       {
         // updraft only
@@ -601,28 +669,98 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         res = plotter.h5load_nc_timestep(at * n["outfreq"]) * rhod / 1e6; // from sepcific to normal moment + per cm^3
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }
-      else if (plt == "cl_nc")
-      {
+      //else if (plt == "cl_nc")
+      // {
 	// cloud droplet (0.5um < r < 25 um) concentration in cloudy grid cells
-        try
-        {
+      //  try
+      //  {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          typename Plotter_t::arr_t snap2;
-          snap2.resize(snap.shape());
-          snap2=snap;
-          snap = iscloudy(snap); // cloudiness mask
-          snap2 *= snap;
+      //    auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+      //    typename Plotter_t::arr_t snap(tmp);
+      //    snap *= rhod; // b4 it was specific moment
+      //    snap /= 1e6; // per cm^3
+      //    typename Plotter_t::arr_t snap2;
+      //   snap2.resize(snap.shape());
+      //    snap2=snap;
+      //    snap = iscloudy_rc_rico(snap); // cloudiness mask
+      //    snap2 *= snap;
 
           // mean only over cloudy cells
-          prof_tmp = plotter.horizontal_sum(snap); // number of cloudy cells on a given level
-          res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(snap2) / prof_tmp, 0);
+      //    prof_tmp = plotter.horizontal_sum(snap); // number of cloudy cells on a given level
+      //    res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(snap2) / prof_tmp, 0);
+      //  }
+      //  catch(...){;}
+      //}
+      else if (plt == "cl_nc")
+      {
+        // cloud droplet (0.5um < r < 25 um) concentration in cloudy grid cells
+        try
+        {
+          typename Plotter_t::arr_t rc_mask(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          rc_mask = iscloudy_rc_rico(rc_mask);
+          typename Plotter_t::arr_t nc(plotter.h5load_nc_timestep(at * n["outfreq"]));
+          nc *= rc_mask;
+          nc *= rhod; // b4 it was specific moment
+          nc /= 1e6;  // to get 1/cc
+          // mean only over cloudy cells
+          prof_tmp = plotter.horizontal_sum(rc_mask); // number of cloudy cells on a given level
+          res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(nc) / prof_tmp, 0);
         }
         catch(...){;}
       }
+//     else if (plt == "AF")
+//    {
+//	// Adiabatic fraction
+//        try
+//        {
+//          auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4. / 3. * 3.1416 * 1e3; // kg/kg 
+//          typename Plotter::arr_t snap(tmp);      
+//          snap = iscloudy_rc_rico(snap); // cloudiness mask
+//          res = plotter.h5load_RH_timestep(at * n["outfreq"]);
+//          plotter.k_i = blitz::sum(snap, plotter.LastIndex); // sum in the vertical, assumes that all cloudy cells in a column belong to the same cloud
+
+          //Cloud base
+//          plotter.tmp_int_hrzntl_slice = blitz::first(res > 0, plotter.LastIndex); // cloud base hgt over dz
+         
+//          typename Plotter_t::arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
+//          typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
+//          typename Plotter_t::arr_t T = th.copy();
+//          T *= pow(plotter.p_e(plotter.LastIndex) / p_1000, R_d / c_pd);
+          
+//          plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(rv, plotter.tmp_int_hrzntl_slice);  
+//          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(th, plotter.tmp_int_hrzntl_slice);  
+          
+          // NOTE: we assume that k_i and tmp_float_hr... is contiguous in memory
+//          for(int i=0; i<plotter.k_i.size(); ++i)
+//            {
+//              const int cl_hgt_over_dz = *(plotter.k_i.data() + i);
+//              if(cl_hgt_over_dz > 0)
+//                {
+//                  occur_no(cl_hgt_over_dz)+=1;
+//                  res_prof_hlpr(cl_hgt_over_dz) += *(plotter.tmp_float_hrzntl_slice.data() + i);
+//                }
+//            }
+                   
+          // (plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]));
+          // init pressure, from rv just to get correct size
+//          typename Plotter_t::arr_t p(rv); 
+  //        T = pow(th_d * pow(rhod * R_d / (p_1000), R_d / c_pd), c_pd / (c_pd - R_d)); 
+          // TODO: env pressure should be used below!
+    //      p = rhod * R_d * (1 + 29./18. * rv) * T;  // Rv/Rd = 29/18
+//          res = th / T * (T - ql * L / c_p); 
+//          res += ql;
+//
+//
+//          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+//          snap = iscloudy_rc(snap); // cloudiness mask
+//          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex);
+//
+//          plotter.tmp_int_hrzntl_slice = blitz::first(snap > 0, plotter.LastIndex); // cloud base hgt over dz
+          // precipitation flux(doesnt include vertical velocity w!)
+//          plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(th, plotter.tmp_int_hrzntl_slice); // precip flux at cloud base
+//        }
+//        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+//      }
       else if (plt == "thl")
       {
 	// liquid potential temp [K]

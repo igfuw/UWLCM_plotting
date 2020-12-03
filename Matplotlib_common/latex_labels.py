@@ -1,11 +1,17 @@
 var_labels = {
+
+  "lwp" : 'LWP [kg m$^{-2}$]',
+  "rwp" : 'RWP [kg m$^{-2}$]',
+  "cwp" : 'CWP [kg m$^{-2}$]',
+  "lwm" : 'LWM [kg]',
+  "cwm" : 'CWM [kg]',
+  "rwm" : 'RWM [kg]',
   "sgs_tke" : 'SGS TKE (Smagorinsky) [m$^{2}$ s$^{-2}$]',
   "sgs_tke_sd" : 'SGS TKE (Super-droplets) [m$^{2}$ s$^{-2}$]',
-  "lwp" : 'LWP [g m$^{-2}$]',
-  "rwp" : 'RWP [g m$^{-2}$]',
   "surf_precip" : 'Surface precip. [mm/day]',
   "acc_precip" : 'Accumulated precip. [mm]',
-  "cl_nc" : '$N_c$ [cm$^{-3}$] (cloudy cells)',
+  "acc_precip_vol" : 'Accumulated precip. [m^3]',
+  #"cl_nc" : '$N_c$ [cm$^{-3}$] (cloudy cells)',
   "cl_nr" : '$N_{r>25\mu m}$ [cm$^{-3}$]',
   "cl_gccn_conc" : '$N_{GCCN}$ [cm$^{-3}$] (cloudy cells)',
   "thl" : r'$\theta_l$ [K]',
@@ -23,13 +29,21 @@ var_labels = {
   "er" : 'Entrainment rate [cm s$^{-1}$]',
   "wvarmax" : 'Max. $w$ variance [m$^{2}$ s$^{-2}$]',
   "cloud_base" : 'Cloud base height [m]',
+  "cloud_top_height" :  'Cloud top height [m]',
+  "total_droplets_number" : 'Total Number of Cloud and Rain Droplets [#]',
   "gccn_rw_cl" : '$<r>$ of GCCN droplets (cloudy cells) [um]',
   "non_gccn_rw_cl" : '$<r>$ of CCN droplets (cloudy cells) [um]',
   "clb_bigrain_mean_rd" : '$<r_d>$ of (r$>$40um) @ clbase [m]',
   "clb_bigrain_mean_kappa" : '$\kappa$ of (r$>$40um) @ clbase',
   "clb_bigrain_mean_conc" : 'conc. of (r$>$40um) @ clbase [1/cc]',
   "clb_bigrain_mean_inclt" : 'time since act. of (r$>$40um) @ clbase [s]',
-  "clb_bigrain_mean_gccn_fraction" : 'frac. of (r$>$40um) on gccn @ clbase'
+  "clb_bigrain_mean_gccn_fraction" : 'frac. of (r$>$40um) on gccn @ clbase',
+  "cl_nc" : 'Number Concentration of Cloud and Rain droplets n [#]',
+  "rliq" : 'Liquid Water Content [g/m^3]',
+  "actrw_reff_cl" : 'Activated Effective Radius [um]',
+  "ratio_mean_volue_r_to_eff_r_cubed" : 'Ratio of Mean Volume Radius to Effective Radius Cubed []',
+  "cloud_std_dev" : 'Standard Deviation of Droplet Radius [um]'
+
 }
 
 

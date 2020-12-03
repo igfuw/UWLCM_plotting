@@ -11,9 +11,11 @@ class PlotterCommon
 
   const string file;
   std::map<std::string, double> map;
+
   std::map<std::string, arr_prof_t> map_prof;
   blitz::Array<float, 1> timesteps;
   double CellVol, DomainSurf, DomainVol;
+
 
   protected:
   H5::H5File h5f;

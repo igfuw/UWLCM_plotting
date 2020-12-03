@@ -336,6 +336,16 @@ class PlotterMicro_t : public Plotter_t<NDims>
                      * 1e3;        // to mm
   }
 
+  // accumulated volume precipitation [m^3]
+  double calc_acc_surf_precip_volume(double prec_vol)
+  {
+    if(this->micro == "lgrngn")
+      return calc_acc_surf_precip(prec_vol) * this->DomainSurf / 1000.;
+    if(this->micro == "blk_1m")
+      return calc_acc_surf_precip(prec_vol) * this->DomainSurf / 1000.;// to m^3 of water
+  }
+
+
   // droplet removal rate (at boundaries) since last output [1/(cm^3 s)]
   double calc_prtcl_removal(double prtcl_removal_diff)
   {
@@ -344,7 +354,6 @@ class PlotterMicro_t : public Plotter_t<NDims>
     if(this->micro == "blk_1m")
       return 0;
   }
-
   //ctor
   PlotterMicro_t(const string &file, const string &micro):
     parent_t(file),

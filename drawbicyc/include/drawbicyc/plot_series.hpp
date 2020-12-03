@@ -62,6 +62,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 
   // save time steps to the series file
   oprof_file << "position" << endl;
+  //oprof_file << "time" << endl;
   oprof_file << plotter.timesteps;
 
 
@@ -81,7 +82,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 
     for (int at = first_timestep; at <= last_timestep; ++at) // TODO: mark what time does it actually mean!
     {
-      res_pos(at) = at * n["outfreq"] * n["dt"] / 3600.;
+      res_pos(at) = at * n["outfreq"] * n["dt"] /3600.;
       // store accumulated precip volume
       prec_vol_prev = prec_vol;
       try
@@ -143,6 +144,27 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           auto stats = plotter.cloud_ract_stats_timestep(at * n["outfreq"]);
           res_prof(at) = stats.first;
           res_prof_std_dev(at) = stats.second;
+        }
+        catch(...) {;}
+      }
+      // cloud top height
+      else if (plt =="cloud_top_height")
+      {
+        try
+        {
+          // cloud fraction (cloudy if ql > 1e-5))
+          auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap = iscloudy_rc_rico(snap);
+          plotter.k_i = blitz::last((snap == 1), plotter.LastIndex);
+          auto cloudy_column = plotter.k_i.copy();
+          cloudy_column = blitz::sum(snap, plotter.LastIndex);
+          cloudy_column = where(cloudy_column > 0, 1, 0);
+          plotter.k_i = where(cloudy_column == 0, 0, plotter.k_i);
+          if(blitz::sum(cloudy_column) > 0)
+           res_prof(at) = blitz::max(plotter.k_i)*n["dz"];
+         else
+           res_prof(at) = 0;
         }
         catch(...) {;}
       }
@@ -470,6 +492,21 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){;}
       }
+      else if (plt == "total_droplets_number")
+      {
+        // Total number of Cloud and Rain Droplets
+        try
+        {
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at *n["outfreq"]) * rhod;
+          //auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at *n["outfreq"]) * rhod;
+          typename Plotter_t::arr_t snap(tmp);
+          //auto tmp2 = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]);
+          //typename Plotter_t::arr_t snap2(tmp2);
+          //res_prof(at) = (blitz::sum(snap) + blitz::sum(snap2))*plotter.CellVol;
+          res_prof(at) = blitz::sum(snap)*plotter.CellVol;
+        }
+        catch(...){;}
+      }
       else if (plt == "cloud_base")
       {
         try
@@ -568,6 +605,15 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...) {;}
       }
+      else if (plt == "acc_vol_precip")
+      {
+        // accumulated volume precipitation[m^3]
+        try
+        { 
+         res_prof(at) = plotter.calc_acc_surf_precip_volume(prec_vol);
+        }
+        catch(...) {;}
+      }
       else if (plt == "lwp")
       {   
         // liquid water path
@@ -590,12 +636,79 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         {
           {
             typename Plotter_t::arr_t snap(plotter.h5load_rr_timestep(at * n["outfreq"]));
-            snap *= rhod * 1e3; // water per cubic metre (should be wet density...) & g/kg
+            snap *= rhod* 1e3; // water per cubic metre (should be wet density...) & g/kg
             res_prof(at) = blitz::mean(snap); 
           }
         }
         catch(...) {;}
-      }   
+      }
+      else if (plt == "cwp")
+      {
+        // cloud water path
+        try
+        {
+          {
+            typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+            snap *= rhod *1e3; // water per cubic metre (should be wet density ...) & g/kg
+            res_prof(at) = blitz::mean(snap);
+          }
+        }
+        catch(...) {;}
+      }
+      else if (plt == "lwm")
+      {
+        //liquid water mass
+        try
+        {
+          { 
+            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * rhod;
+            typename Plotter_t::arr_t snap(tmp);
+            snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * rhod;
+            snap *= plotter.CellVol;
+            snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
+            snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
+            //auto slice = snap(plotter.hrzntl_slice(0))/2; + snap(plotter.hrzntl_slice(-1))/2; 
+            //plotter.k_i2 = snap(plotter.hrzntl_slice(-1)/2);
+                    //snap += blitz::snap(plotter.hrzntl_slice(0)/2);
+            //snap += blitz::snap(plotter.hrzntl_slice(-1)/2);
+            //res_prof(at) = blitz::sum(snap(plotter.hirzntl_slice(0)))/2 +  blitz::sum(snap(plotter.hrzntl_slice(-1)))/2;
+            res_prof(at) = blitz::sum( snap);// + blitz::sum(slice);///blitz::sum(snap(plotter.hrzntl_slice(0))/2 + snap(plotter.hrzntl_slice(-1))/2 + snap);
+          }
+        }
+        catch(...) {;}
+      }
+      else if (plt == "cwm")
+      {
+        //cloud water mass
+        try
+        {
+          { 
+            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tmp);
+            snap *= rhod * plotter.CellVol;
+            snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
+            snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
+            res_prof(at) = blitz::sum(snap);
+          }
+        }
+        catch(...) {;}
+      }
+      else if (plt == "rwm")
+      {
+        //liquid water mass
+        try
+        {
+          { 
+            auto tmp = plotter.h5load_rr_timestep(at * n["outfreq"]);
+            typename Plotter_t::arr_t snap(tmp);
+            snap *= rhod * plotter.CellVol;
+            snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
+            snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
+            res_prof(at) = blitz::sum(snap);
+          }
+        }
+        catch(...) {;}
+      }
       else if (plt == "surf_flux_latent")
       {   
         try
@@ -1409,6 +1522,10 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
     {
       res_pos *= 60.;
     }
+    else if (plt == "cloud_top_height")
+    {
+      res_pos *= 60.;
+    }
     else if (plt == "tot_tke" || plt == "tot_tke_nowall" || plt == "sgs_tke" || plt == "uw_resolved_tke")
     {
       res_pos *= 60.;
@@ -1421,6 +1538,22 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
     {
       res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
     }
+    else if (plt == "cwp")
+    {
+      res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+    }
+   // else if (plt == "lwm")
+   // {
+   //  res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+   // }
+   // else if (plt == "cwm")
+   // {
+   //   res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+   // }
+   // else if (plt == "rwm")
+   // {
+   //   res_prof *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+   // }
     else if (plt == "er")
     {
       // central difference, in cm

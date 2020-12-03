@@ -25,7 +25,7 @@ class Plotter_t<3> : public PlotterCommon
   auto h5load(
     const string &file, 
     const string &dataset,
-    bool srfc = false // load a horiznotal slice 
+    bool srfc = false // load a horizontal slice 
   ) -> decltype(blitz::safeToReturn(arr_t() + 0))
   {
     parent_t::h5load(file, dataset);
