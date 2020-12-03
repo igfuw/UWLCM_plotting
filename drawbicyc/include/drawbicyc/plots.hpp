@@ -4,6 +4,7 @@
 #include "cases/Dycoms_RF02/plots.hpp"
 #include "cases/moist_thermal/plots.hpp"
 #include "cases/PiChamber/plots.hpp"
+#include "cases/PiChamber/plots_icmw.hpp"
 #include "cases/Lasher_Trapp/plots.hpp"
 #include "cases/ICMW2020_cumulus_congestus/plots.hpp"
 
@@ -57,12 +58,21 @@ class Plots
       series.insert(series.end(), series_Lasher_Trapp.begin(), series_Lasher_Trapp.end());
       fields.insert(fields.end(), fields_Lasher_Trapp.begin(), fields_Lasher_Trapp.end());
     }
+
     else if(type == "ICMW2020_cc") {
       profs.insert(profs.end(), profs_ICMW2020.begin(), profs_ICMW2020.end());
       series.insert(series.end(), series_ICMW2020.begin(), series_ICMW2020.end());
       fields.insert(fields.end(), fields_ICMW2020.begin(), fields_ICMW2020.end());
     }
  /*
+
+    else if(type == "pi_chamber_icmw") { 
+      profs.insert(profs.end(), profs_PiChamberICMW.begin(), profs_PiChamberICMW.end());
+      series.insert(series.end(), series_PiChamberICMW.begin(), series_PiChamberICMW.end());
+      fields.insert(fields.end(), fields_PiChamberICMW.begin(), fields_PiChamberICMW.end());
+    }
+    /*
+
     else if(type == "base_prflux_vs_clhght") { 
       profs.insert(profs.end(), profs_base_prflux_vs_clhght.begin(), profs_base_prflux_vs_clhght.end());
     }*/

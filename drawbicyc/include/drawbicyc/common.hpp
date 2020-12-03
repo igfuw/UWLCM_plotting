@@ -57,5 +57,14 @@ string zeropad(int n, int w=3)
   return tmp.str();
 }
 
+const double distance_from_walls = 0.125; // for nowall statistics, distance taken from the Pi Chamber case description for ICMW2020, https://iccp2020.tropmet.res.in/Cloud-Modeling-Workshop-2020
+
+// some ugly constants
+const double p_1000 = 100000.;
+const double L = 2.5e6;
+const double R_d = 287.0024888;
+const double c_p = 1005;
+const double c_pd = c_p;
+const double D = 3.75e-6; //[1/s], ugly, large-scale horizontal wind divergence from the DYCOMS RF02 case TODO: read from model output
 
 

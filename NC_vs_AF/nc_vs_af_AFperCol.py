@@ -2,9 +2,8 @@
 # adiabatic rl calculated separately for each column
 
 from sys import argv, path, maxsize
-#path.insert(0, "/home/piotr/usr/local/lib/python2.7/dist-packages/")
-#path.insert(0,"/home/piotr/usr/local/lib/python3/dist-packages/")
 path.insert(0,"../../local_folder/uptodate/lib/python3/dist-packages")
+
 import h5py
 import numpy as np
 import matplotlib
@@ -19,15 +18,7 @@ plt.rcParams.update({'font.size': 20})
 plt.figure(figsize=(16,10))
 
 evap_lat = 2.5e6 # [J/kg] latent heat of evaporation
-
-#timesteps = [12000, 36000, 72000]
-#timesteps = [13200]
-
-timesteps = np.ones(91)
-
-for i in range(1, 91):
-       timesteps[i] = i*240
-timesteps = timesteps[1:91]
+timesteps = [13200]
 
 input_dir = argv[1]
 outfile = argv[2]
@@ -39,13 +30,16 @@ dz = h5py.File(input_dir + "/const.h5", "r").attrs["dz"]
 
 for timestep in timesteps:
   plt.clf()
+
   filename = input_dir + "/timestep" + str(int(timestep)).zfill(10) + ".h5"
+
   #rl = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:,:] + h5py.File(filename, "r")["rain_rw_mom3"][:,:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
   rl = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
   nc = h5py.File(filename, "r")["cloud_rw_mom0"][:,:,:] * rhod / 1e6; # 1 / cm^3
 
   # cloudiness mask - as in DYCOMS paper
   cloudy_mask = np.where(nc > 20, 1, 0)
+
 
   print('nc>20 cloudy cells: ', np.sum(cloudy_mask))
   print('nc>20 mean nc in cloudy cells: ', np.sum(nc * cloudy_mask) / np.sum(cloudy_mask))
@@ -59,6 +53,7 @@ for timestep in timesteps:
   # cloudiness mask - as in RICO paper
   cloudy_mask = np.where(rl > 1e-5, 1, 0)
   cloudy_mask_used = cloudy_mask
+
 
   print('rl>1e-5 cloudy cells: ', np.sum(cloudy_mask))
   print('rl>1e-5 mean nc in cloudy cells: ', np.sum(nc * cloudy_mask) / np.sum(cloudy_mask))
@@ -113,7 +108,6 @@ for timestep in timesteps:
         parcel_th += delta_rv * evap_lat / lcmn.c_pd / lcmn.exner(p_e.astype(float)[k])
         parcel_rl += delta_rv
         adia_rl[i, j, k] = parcel_rl
-
   #adia_rl = np.where(adia_rl > 0., adia_rl, 0)
   #print adia_rl
 
@@ -146,6 +140,7 @@ for timestep in timesteps:
           cloudy_mask_used[i,j,k] = 0
 
   # plot cloudy points
+
 #  plt.scatter(AF[cloudy_mask_used==1].flatten(), nc[cloudy_mask_used==1].flatten(), c =  hght_abv_clb[cloudy_mask_used==1].flatten(), s=2, cmap='hot', alpha=0.5)
 # jet, hot
 #  cb = plt.colorbar()
@@ -157,6 +152,7 @@ for timestep in timesteps:
 #  plt.xlabel('AF')
 #  plt.ylabel('Nc [1/cc]')
 
+
   #plt.plot((rl*cloudy_mask_used).flatten(), (nc*cloudy_mask_used).flatten(), 'o')
   #
   #plt.xscale('log')
@@ -166,6 +162,7 @@ for timestep in timesteps:
 #  plt.savefig(outfile + '_NCvsAF_AFperCol_' + str(timestep) +'.png')
 
   # plot adia_rl vs rl
+
 #  plt.clf()
 #  plt.scatter(adia_rl[cloudy_mask_used==1].flatten(), rl[cloudy_mask_used==1].flatten(), c =  hght_abv_clb[cloudy_mask_used==1].flatten(), s=2, cmap='hot', alpha=0.5)
 # jet, hot
@@ -193,6 +190,7 @@ for timestep in timesteps:
 #  plt.ylabel('Nc [1/cc]')
 #  plt.savefig(outfile + '_NCvsrl_AFperCol_' + str(timestep) +'.png')
 
+
 #  # plot NC vs hght abv clb
 #  plt.clf()
 #  plt.scatter(hght_abv_clb[cloudy_mask_used==1].flatten(), nc[cloudy_mask_used==1].flatten(), c = AF[cloudy_mask_used==1].flatten())
@@ -207,4 +205,6 @@ for timestep in timesteps:
   AF_mean[np.isnan(AF_mean)] = 0 # set AF=0 above and below cloud
 #  plt.xlim(0,1.5)
   plt.plot(AF_mean, hght)
+
   plt.savefig(outfile + '_AFprofile_AFperCol_' + str(int(timestep)) +'.png')
+

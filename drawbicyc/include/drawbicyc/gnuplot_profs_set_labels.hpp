@@ -91,12 +91,20 @@ void gnuplot_profs_set_labels(Gnuplot &gp, std::string plt, const bool normalize
 
   else if (plt == "rv")
   {
-    gp << "set title 'rv [g/kg] averaged over 2h-6h, w/o rw<0.5um'\n";
+    gp << "set title 'rv [g/kg]'\n";
     if(normalize)
     {
       gp << "set yrange [0.:0.6]\n";
       gp << "set xrange [9.2:9.5]\n";
     }
+  }
+  else if (plt == "T")
+  {
+    gp << "set title 'T [K]'\n";
+  }
+  else if (plt == "RH")
+  {
+    gp << "set title 'RH [%]'\n";
   }
   else if (plt == "u")
   {
