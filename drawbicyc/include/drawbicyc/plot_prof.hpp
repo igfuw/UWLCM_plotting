@@ -91,7 +91,13 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         //res += plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
         res += plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
         res += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
-        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        //res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+        typename Plotter_t::arr_t rc_mask(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        rc_mask = iscloudy_rc_rico(rc_mask);
+        //res *= rc_mask;
+        //res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+	prof_tmp = plotter.horizontal_sum(rc_mask);
+        res_prof_hlpr = where(prof_tmp > 0, plotter.horizontal_sum(res) / prof_tmp, 0);
       }
       if (plt == "gccn_rw")
       {
@@ -598,25 +604,42 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         res = plotter.h5load_nc_timestep(at * n["outfreq"]) * rhod / 1e6; // from sepcific to normal moment + per cm^3
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }
-      else if (plt == "cl_nc")
-      {
+      //else if (plt == "cl_nc")
+      // {
 	// cloud droplet (0.5um < r < 25 um) concentration in cloudy grid cells
-        try
-        {
+      //  try
+      //  {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          typename Plotter_t::arr_t snap2;
-          snap2.resize(snap.shape());
-          snap2=snap;
-          snap = iscloudy(snap); // cloudiness mask
-          snap2 *= snap;
+      //    auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+      //    typename Plotter_t::arr_t snap(tmp);
+      //    snap *= rhod; // b4 it was specific moment
+      //    snap /= 1e6; // per cm^3
+      //    typename Plotter_t::arr_t snap2;
+      //   snap2.resize(snap.shape());
+      //    snap2=snap;
+      //    snap = iscloudy_rc_rico(snap); // cloudiness mask
+      //    snap2 *= snap;
 
           // mean only over cloudy cells
-          prof_tmp = plotter.horizontal_sum(snap); // number of cloudy cells on a given level
-          res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(snap2) / prof_tmp, 0);
+      //    prof_tmp = plotter.horizontal_sum(snap); // number of cloudy cells on a given level
+      //    res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(snap2) / prof_tmp, 0);
+      //  }
+      //  catch(...){;}
+      //}
+      else if (plt == "cl_nc")
+      {
+        // cloud droplet (0.5um < r < 25 um) concentration in cloudy grid cells
+        try
+        {
+          typename Plotter_t::arr_t rc_mask(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          rc_mask = iscloudy_rc_rico(rc_mask);
+          typename Plotter_t::arr_t nc(plotter.h5load_nc_timestep(at * n["outfreq"]));
+          nc *= rc_mask;
+          nc *= rhod; // b4 it was specific moment
+          nc /= 1e6;  // to get 1/cc
+          // mean only over cloudy cells
+          prof_tmp = plotter.horizontal_sum(rc_mask); // number of cloudy cells on a given level
+          res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(nc) / prof_tmp, 0);
         }
         catch(...){;}
       }

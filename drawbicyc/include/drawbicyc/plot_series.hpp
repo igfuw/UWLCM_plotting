@@ -501,11 +501,13 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // Total number of Cloud and Rain Droplets
         try
         {
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at *n["outfreq"]) * rhod;
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at *n["outfreq"]) * rhod;
+          //auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at *n["outfreq"]) * rhod;
           typename Plotter_t::arr_t snap(tmp);
-          auto tmp2 = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap2(tmp2);
-          res_prof(at) = (blitz::sum(snap) + blitz::sum(snap2))*plotter.CellVol;
+          //auto tmp2 = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]);
+          //typename Plotter_t::arr_t snap2(tmp2);
+          //res_prof(at) = (blitz::sum(snap) + blitz::sum(snap2))*plotter.CellVol;
+          res_prof(at) = blitz::sum(snap)*plotter.CellVol;
         }
         catch(...){;}
       }

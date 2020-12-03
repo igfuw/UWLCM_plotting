@@ -165,7 +165,7 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
       {
         //Stadndard deviation of the size distribution
         try{
-        typename Plotter_t::arr_t tmp1(plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
+        typename Plotter_t::arr_t tmp1(plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]));
         typename Plotter_t::arr_t tmp2(plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]));
         typename Plotter_t::arr_t tmp0(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
         typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));

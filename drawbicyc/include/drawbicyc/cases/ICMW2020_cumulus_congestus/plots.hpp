@@ -40,7 +40,7 @@ std::vector<std::string> profs_ICMW2020({
   //"prflux",
   //"clfrac",
   //"sd_conc",
-  // "cl_nc",
+  "cl_nc",
   //"cl_nc_up",
   //"w",
   //"u",
@@ -48,7 +48,7 @@ std::vector<std::string> profs_ICMW2020({
   //"base_prflux_vs_clhght",
   //"non_gccn_rw_cl",
   //"gccn_rw_cl,"
-  "N_c",
+  // "N_c",
   "actrw_reff_cl",
   "ratio_mean_volue_r_to_eff_r_cubed",
   "cloud_std_dev"
@@ -67,7 +67,7 @@ std::vector<std::string> fields_ICMW2020({
   "ratio_mean_volue_r_to_eff_r_cubed",
   "cloud_std_dev",
   //"rr",
-  //"nr",
+  "nr",
   "ef"
   //"na",
   //"th",

@@ -11,7 +11,7 @@ var_labels = {
   "surf_precip" : 'Surface precip. [mm/day]',
   "acc_precip" : 'Accumulated precip. [mm]',
   "acc_precip_vol" : 'Accumulated precip. [m^3]',
-  "cl_nc" : '$N_c$ [cm$^{-3}$] (cloudy cells)',
+  #"cl_nc" : '$N_c$ [cm$^{-3}$] (cloudy cells)',
   "cl_nr" : '$N_{r>25\mu m}$ [cm$^{-3}$]',
   "cl_gccn_conc" : '$N_{GCCN}$ [cm$^{-3}$] (cloudy cells)',
   "thl" : r'$\theta_l$ [K]',
@@ -38,11 +38,11 @@ var_labels = {
   "clb_bigrain_mean_conc" : 'conc. of (r$>$40um) @ clbase [1/cc]',
   "clb_bigrain_mean_inclt" : 'time since act. of (r$>$40um) @ clbase [s]',
   "clb_bigrain_mean_gccn_fraction" : 'frac. of (r$>$40um) on gccn @ clbase',
-  "N_c" : 'number concentration of droplets n [#]',
-  "rliq" : 'liquid water content LWC',
-  "actrw_reff_cl" : 'effective radius [um]',
-  "ratio_mean_volue_r_to_eff_r_cubed" : 'ratio of mean volume radius to effective radius cubed',
-  "cloud_std_dev" : 'standard deviation'
+  "cl_nc" : 'Number Concentration of Cloud and Rain droplets n [#]',
+  "rliq" : 'Liquid Water Content [g/m^3]',
+  "actrw_reff_cl" : 'Activated Effective Radius [um]',
+  "ratio_mean_volue_r_to_eff_r_cubed" : 'Ratio of Mean Volume Radius to Effective Radius Cubed []',
+  "cloud_std_dev" : 'Standard Deviation of Droplet Radius [um]'
 
 }
 

@@ -3,10 +3,12 @@
 
 from sys import argv, path, maxsize
 #path.insert(0, "/home/piotr/usr/local/lib/python2.7/dist-packages/")
-path.insert(0,"/home/piotr/usr/local/lib/python3/dist-packages/")
-
+#path.insert(0,"/home/piotr/usr/local/lib/python3/dist-packages/")
+path.insert(0,"../../local_folder/uptodate/lib/python3/dist-packages")
 import h5py
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from libcloudphxx import common as lcmn
 
@@ -19,7 +21,13 @@ plt.figure(figsize=(16,10))
 evap_lat = 2.5e6 # [J/kg] latent heat of evaporation
 
 #timesteps = [12000, 36000, 72000]
-timesteps = [13200]
+#timesteps = [13200]
+
+timesteps = np.ones(91)
+
+for i in range(1, 91):
+       timesteps[i] = i*240
+timesteps = timesteps[1:91]
 
 input_dir = argv[1]
 outfile = argv[2]
@@ -31,7 +39,7 @@ dz = h5py.File(input_dir + "/const.h5", "r").attrs["dz"]
 
 for timestep in timesteps:
   plt.clf()
-  filename = input_dir + "/timestep" + str(timestep).zfill(10) + ".h5"
+  filename = input_dir + "/timestep" + str(int(timestep)).zfill(10) + ".h5"
   #rl = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:,:] + h5py.File(filename, "r")["rain_rw_mom3"][:,:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
   rl = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
   nc = h5py.File(filename, "r")["cloud_rw_mom0"][:,:,:] * rhod / 1e6; # 1 / cm^3
@@ -138,16 +146,16 @@ for timestep in timesteps:
           cloudy_mask_used[i,j,k] = 0
 
   # plot cloudy points
-  plt.scatter(AF[cloudy_mask_used==1].flatten(), nc[cloudy_mask_used==1].flatten(), c =  hght_abv_clb[cloudy_mask_used==1].flatten(), s=2, cmap='hot', alpha=0.5)
+#  plt.scatter(AF[cloudy_mask_used==1].flatten(), nc[cloudy_mask_used==1].flatten(), c =  hght_abv_clb[cloudy_mask_used==1].flatten(), s=2, cmap='hot', alpha=0.5)
 # jet, hot
-  cb = plt.colorbar()
-  cb.set_label("Height above cloud base [m]")
+#  cb = plt.colorbar()
+#  cb.set_label("Height above cloud base [m]")
 #  plt.clim(0,1400)
 #  plt.xlim(0,10)
 #  plt.ylim(0,200)
 
-  plt.xlabel('AF')
-  plt.ylabel('Nc [1/cc]')
+#  plt.xlabel('AF')
+#  plt.ylabel('Nc [1/cc]')
 
   #plt.plot((rl*cloudy_mask_used).flatten(), (nc*cloudy_mask_used).flatten(), 'o')
   #
@@ -155,35 +163,35 @@ for timestep in timesteps:
   #plt.yscale('log')
   #
   #plt.show()
-  plt.savefig(outfile + '_NCvsAF_AFperCol_' + str(timestep) +'.png')
+#  plt.savefig(outfile + '_NCvsAF_AFperCol_' + str(timestep) +'.png')
 
   # plot adia_rl vs rl
-  plt.clf()
-  plt.scatter(adia_rl[cloudy_mask_used==1].flatten(), rl[cloudy_mask_used==1].flatten(), c =  hght_abv_clb[cloudy_mask_used==1].flatten(), s=2, cmap='hot', alpha=0.5)
+#  plt.clf()
+#  plt.scatter(adia_rl[cloudy_mask_used==1].flatten(), rl[cloudy_mask_used==1].flatten(), c =  hght_abv_clb[cloudy_mask_used==1].flatten(), s=2, cmap='hot', alpha=0.5)
 # jet, hot
-  cb = plt.colorbar()
-  cb.set_label("Height above cloud base [m]")
+#  cb = plt.colorbar()
+#  cb.set_label("Height above cloud base [m]")
 #  plt.clim(0,1400)
-  plt.gca().set_xlim(left=0)
-  plt.gca().set_ylim(bottom=0)
-  plt.ylabel('r_l')
-  plt.xlabel('adia r_l')
-  xpoints = ypoints = plt.xlim()
-  plt.plot(xpoints, ypoints, linestyle='--', color='k', lw=3, scalex=False, scaley=False)
-  plt.savefig(outfile + '_rl_vs_AdiaRl_AFperCol_' + str(timestep) +'.png')
+#  plt.gca().set_xlim(left=0)
+#  plt.gca().set_ylim(bottom=0)
+#  plt.ylabel('r_l')
+#  plt.xlabel('adia r_l')
+#  xpoints = ypoints = plt.xlim()
+#  plt.plot(xpoints, ypoints, linestyle='--', color='k', lw=3, scalex=False, scaley=False)
+#  plt.savefig(outfile + '_rl_vs_AdiaRl_AFperCol_' + str(timestep) +'.png')
 
 #  # plot NC vs rl
-  plt.clf()
-  plt.scatter(rl[cloudy_mask_used==1].flatten(), nc[cloudy_mask_used==1].flatten(), c =  hght_abv_clb[cloudy_mask_used==1].flatten(), s=2, cmap='hot', alpha=0.5)
+#  plt.clf()
+#  plt.scatter(rl[cloudy_mask_used==1].flatten(), nc[cloudy_mask_used==1].flatten(), c =  hght_abv_clb[cloudy_mask_used==1].flatten(), s=2, cmap='hot', alpha=0.5)
 # jet, hot
-  cb = plt.colorbar()
-  cb.set_label("Height above cloud base [m]")
+#  cb = plt.colorbar()
+#  cb.set_label("Height above cloud base [m]")
 #  plt.clim(0,1400)
 #  plt.xlim(0,5e-3)
 #  plt.ylim(0,200)
-  plt.xlabel('r_l')
-  plt.ylabel('Nc [1/cc]')
-  plt.savefig(outfile + '_NCvsrl_AFperCol_' + str(timestep) +'.png')
+#  plt.xlabel('r_l')
+#  plt.ylabel('Nc [1/cc]')
+#  plt.savefig(outfile + '_NCvsrl_AFperCol_' + str(timestep) +'.png')
 
 #  # plot NC vs hght abv clb
 #  plt.clf()
@@ -199,4 +207,4 @@ for timestep in timesteps:
   AF_mean[np.isnan(AF_mean)] = 0 # set AF=0 above and below cloud
 #  plt.xlim(0,1.5)
   plt.plot(AF_mean, hght)
-  plt.savefig(outfile + '_AFprofile_AFperCol_' + str(timestep) +'.png')
+  plt.savefig(outfile + '_AFprofile_AFperCol_' + str(int(timestep)) +'.png')
