@@ -35,8 +35,10 @@ dz = h5py.File(input_dir + "/const.h5", "r").attrs["dz"]
 
 for timestep in timesteps:
   plt.clf()
+
   print(int(timestep))
   filename = input_dir + "/timestep" + str(int(timestep)).zfill(10) + ".h5"
+
   #rl = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:,:] + h5py.File(filename, "r")["rain_rw_mom3"][:,:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
   rl = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
   nc = h5py.File(filename, "r")["cloud_rw_mom0"][:,:,:] * rhod / 1e6; # 1 / cm^3

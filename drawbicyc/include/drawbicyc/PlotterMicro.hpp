@@ -281,6 +281,34 @@ class PlotterMicro_t : public Plotter_t<NDims>
     return cloud_hlpr(act1st, at);
   }
 
+  // mean and std_dev of temperature [K] (characteristics of the spatial distribution at this timestep, without near-wall cells)
+  std::pair<double, double> T_stats_nowall_timestep(int at)
+  {   
+    // read theta away from walls 
+    arr_t tht(this->nowall(arr_t(this->h5load_timestep("th", at)), distance_from_walls));
+    tht *= pow(this->map_prof["p_e"](this->LastIndex) / p_1000, R_d / c_pd); // tht -> T
+    return hlpr(tht, at);
+  }
+
+  // mean and std_dev of r_v [1] (characteristics of the spatial distribution at this timestep)
+  std::pair<double, double> rv_stats_nowall_timestep(int at)
+  {   
+    // read rv away from walls 
+    arr_t rv(this->nowall(arr_t(this->h5load_timestep("rv", at)), distance_from_walls));
+    return hlpr(rv, at);
+  }
+
+  // mean and std_dev of RH [1] (characteristics of the spatial distribution at this timestep)
+  std::pair<double, double> RH_stats_nowall_timestep(int at)
+  {   
+    if(this->micro == "blk_1m") return {0,0};
+    std::pair<double, double> res;
+
+    // read RH away from walls 
+    arr_t RH(this->nowall(arr_t(this->h5load_timestep("RH", at)), distance_from_walls));
+    return hlpr(RH, at);
+  }
+
   // surface precipitation since last output [mm/day]
   double calc_surf_precip(double prec_vol_diff)
   {
@@ -307,6 +335,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
                      / 1e3         // to m^3 of water
                      * 1e3;        // to mm
   }
+
   // accumulated volume precipitation [m^3]
   double calc_acc_surf_precip_volume(double prec_vol)
   {
@@ -314,6 +343,16 @@ class PlotterMicro_t : public Plotter_t<NDims>
       return calc_acc_surf_precip(prec_vol) * this->DomainSurf / 1000.;
     if(this->micro == "blk_1m")
       return calc_acc_surf_precip(prec_vol) * this->DomainSurf / 1000.;// to m^3 of water
+  }
+
+
+  // droplet removal rate (at boundaries) since last output [1/(cm^3 s)]
+  double calc_prtcl_removal(double prtcl_removal_diff)
+  {
+    if(this->micro == "lgrngn")
+      return prtcl_removal_diff / this->DomainVol / (double(this->map["outfreq"]) * this->map["dt"]) / 1e6;
+    if(this->micro == "blk_1m")
+      return 0;
   }
   //ctor
   PlotterMicro_t(const string &file, const string &micro):

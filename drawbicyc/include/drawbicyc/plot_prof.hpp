@@ -21,6 +21,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
   std::string prof_end_s = std::to_string(vm["prof_end"].as<int>());
 
   auto& n = plotter.map;
+  auto& n_prof = plotter.map_prof;
   for(auto elem : n)
   {
      std::cout << elem.first << " " << elem.second << std::endl;
@@ -38,8 +39,9 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
 
 //  int k_i = 0; // inversion cell
 
-  int first_timestep =  vm["prof_start"].as<int>() / int(n["dt"] * n["outfreq"]);
-  int last_timestep =  vm["prof_end"].as<int>() / int(n["dt"] * n["outfreq"]);
+  std::cerr << int(n["dt"] * n["outfreq"]+0.5) << std::endl;
+  int first_timestep =  vm["prof_start"].as<int>() / int(n["dt"] * n["outfreq"]+0.5);
+  int last_timestep =  vm["prof_end"].as<int>() / int(n["dt"] * n["outfreq"]+0.5);
 
   // some ugly constants
   const double p_1000 = 100000.;
@@ -192,6 +194,64 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         }
         // mean only over downdraught cells
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+      }
+      if (plt == "non_gccn_rw_cl_down")
+      {
+	// non_gccn (rd<2um) droplets dry radius in cloudy downdraughts
+        { // downdraft
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp2 = isdowndraught(snap);
+        }
+        { // cloudy
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          res_tmp = iscloudy_rc_rico(snap);
+          res_tmp2 *= res_tmp;
+        }
+        // mean rw
+        {
+          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap; 
+        }
+        {
+          auto tmp = plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
+        }
+        // mean only over cloudy downdraught cells
+        res_tmp *= res_tmp2;
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of cloudy downdraft cells on a given level
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+      }
+      if (plt == "gccn_rw_cl_down")
+      {
+	// gccn (rd>2um) droplets dry radius in cloudy downdraughts
+        { // downdraft
+          auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp2 = isdowndraught(snap);
+        }
+        { // cloudy
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          res_tmp = iscloudy_rc_rico(snap);
+          res_tmp2 *= res_tmp;
+        }
+        // mean rw
+        {
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6;
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap; 
+        }
+        {
+          auto tmp = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
+        }
+        // mean only over cloudy downdraught cells
+        res_tmp *= res_tmp2;
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of cloudy downdraft cells on a given level
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
       }
       if (plt == "non_gccn_rw_up")
@@ -556,6 +616,11 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         res = (res -1) * 100;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }
+      else if (plt == "RH")
+      {
+        res = plotter.h5load_RH_timestep(at * n["outfreq"]);
+        res_prof_hlpr = plotter.horizontal_mean(res) * 100; // average in x; [%]
+      }
       else if (plt == "sat_RH_up")
       {
         {
@@ -712,7 +777,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
 //          typename Plotter_t::arr_t rv(plotter.h5load_timestep("rv", at * n["outfreq"]));
 
           typename Plotter_t::arr_t T = th.copy();
-          T *= pow(plotter.p_e(plotter.LastIndex) / p_1000, R_d / c_pd);
+          T *= pow(n_prof["p_e"](plotter.LastIndex) / p_1000, R_d / c_pd);
 // (plotter.h5load_timestep("libcloud_temperature", at * n["outfreq"]));
           // init pressure, from rv just to get correct size
 //          typename Plotter_t::arr_t p(rv); 
@@ -721,6 +786,15 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
     //      p = rhod * R_d * (1 + 29./18. * rv) * T;  // Rv/Rd = 29/18
           res = th / T * (T - ql * L / c_p); 
 //          res += ql;
+        }
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+      }
+      else if (plt == "T")
+      {
+	// temp [K]
+        {
+          typename Plotter_t::arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
+          res = th * pow(n_prof["p_e"](plotter.LastIndex) / p_1000, R_d / c_pd); // th->T
         }
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }

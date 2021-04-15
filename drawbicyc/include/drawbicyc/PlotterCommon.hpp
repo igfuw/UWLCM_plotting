@@ -7,10 +7,15 @@
 class PlotterCommon
 {
   public:
+  using arr_prof_t = blitz::Array<float,1>;
+
   const string file;
   std::map<std::string, double> map;
-  blitz::Array<float, 1> timesteps, p_e;
-  double CellVol, DomainSurf, DomainVolume;
+
+  std::map<std::string, arr_prof_t> map_prof;
+  blitz::Array<float, 1> timesteps;
+  double CellVol, DomainSurf, DomainVol;
+
 
   protected:
   H5::H5File h5f;
@@ -45,7 +50,7 @@ class PlotterCommon
 
   public:
 
-  float load_liq_vol(int at)
+  float puddle_liq_vol(int at)
   {
     notice_macro("about to close current file")
     h5f.close();
@@ -63,6 +68,24 @@ class PlotterCommon
     return ret;
   }
 
+
+  float puddle_prtcl_no(int at)
+  {
+    notice_macro("about to close current file")
+    h5f.close();
+  
+    string timestep_file = file + "/timestep" + zeropad(at, 10) + ".h5";
+    notice_macro("about to open file: " << timestep_file)
+    h5f.openFile(timestep_file, H5F_ACC_RDONLY);
+  
+    notice_macro("about to read group: puddle")
+    h5g = h5f.openGroup("puddle");
+
+    float ret;
+    auto attr = h5g.openAttribute("particle_number");
+    attr.read(attr.getDataType(), &ret);
+    return ret;
+  }
   //ctor
   PlotterCommon(const string &file):
     file(file)
@@ -94,8 +117,14 @@ class PlotterCommon
       // read environmental pressure profile
       h5load(file + "/const.h5", "p_e");
       h5s.getSimpleExtentDims(&n, NULL);
-      p_e.resize(n);
-      h5d.read(p_e.data(), H5::PredType::NATIVE_FLOAT);
+      map_prof.emplace("p_e", arr_prof_t(n));
+      h5d.read(map_prof["p_e"].data(), H5::PredType::NATIVE_FLOAT);
+
+      // read SGS mixing length profile
+      h5load(file + "/const.h5", "mix_len");
+      h5s.getSimpleExtentDims(&n, NULL);
+      map_prof.emplace("mix_len", arr_prof_t(n));
+      h5d.read(map_prof["mix_len"].data(), H5::PredType::NATIVE_FLOAT);
 
       // read output frequency
       float outfreq;

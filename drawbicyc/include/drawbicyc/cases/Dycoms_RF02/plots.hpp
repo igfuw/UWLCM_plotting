@@ -22,17 +22,18 @@ const std::vector<std::string> series_dycoms({
 });
 
 std::vector<std::string> profs_dycoms({
-"00rtot",
+"00rtot"
 // "rliq", "thl", "wvar", 
 //"w3rd",
- "prflux"
+// "prflux"
 //,"clfrac"
 //, "N_c", 
-,"cl_nc"
+//,"cl_nc"
 //,"sat_RH"
 //,"rad_flx"
 //, "non_gccn_rw_cl"
-//, "gccn_rw_cl"
+, "gccn_rw_cl_down"
+, "non_gccn_rw_cl_down"
 //, "nc_up" 
 //,"sat_RH_up"
 //, "act_conc_up" 
