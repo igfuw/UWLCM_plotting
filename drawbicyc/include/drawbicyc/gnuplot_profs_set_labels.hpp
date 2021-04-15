@@ -84,7 +84,7 @@ void gnuplot_profs_set_labels(Gnuplot &gp, std::string plt, const bool normalize
   {
     gp << "set title 'Standard Deviation of Droplet Radius [um]'\n";
   } 
-  if (plt == "ratio_mean_volue_r_to_eff_r_cubed")
+  if (plt == "ratio_mean_volume_r_to_eff_r_cubed")
   {
     gp << "set title 'Ratio of Mean Volume Radius to Effective Radius Cubed [-]'\n";
   }

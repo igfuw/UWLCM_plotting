@@ -319,7 +319,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
       }
-      if (plt == "ratio_mean_volue_r_to_eff_r_cubed")
+      if (plt == "ratio_mean_volume_r_to_eff_r_cubed")
       { 
          {
             //auto tmp0 = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);

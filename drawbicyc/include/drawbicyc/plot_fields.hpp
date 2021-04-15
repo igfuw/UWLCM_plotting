@@ -22,7 +22,7 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
 
   // read in density
   typename Plotter_t::arr_t rhod(plotter.h5load(plotter.file + "/const.h5", "G"));
-  
+
   blitz::firstIndex i;
   blitz::secondIndex j;
   blitz::Range all = blitz::Range::all();
@@ -75,7 +75,7 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){}
       }
-      else if (plt == "rliq")
+      else if (plt == "LWC")
       {
         // liquid water content
         try{
@@ -86,7 +86,7 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){}
       }
-      else if (plt == "nc")
+      else if (plt == "number_concentration")
       {
 	// cloud particle concentration
         try{
@@ -114,7 +114,7 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){}
       }
-      else if (plt == "nr")
+      else if (plt == "rain_drops_concentration")
       {
         try{
 	// rain particle concentration
@@ -128,19 +128,28 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){}
       }
-      else if (plt == "ef")
+      else if (plt == "effective_radius")
       {
         try{
 	// effective radius
-	auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) / plotter.h5load_timestep("cloud_rw_mom2", at * n["outfreq"]) * 1e6;
-	std::string title = "cloud (0.5um < r < 25um) droplet effective radius [μm]"; 
+	//auto tmp = plotter.h5load_timestep("actrw_rw_mom3", at * n["outfreq"]) / plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"];//) * 1e6;
+	
+        typename Plotter_t::arr_t tmp2(plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]));
+        typename Plotter_t::arr_t tmp3(plotter.h5load_timestep("actrw_rw_mom3", at * n["outfreq"]));
+        typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        auto tmp4 = iscloudy_rc_rico(snap);
+        
+        auto tmp5 = where(tmp2 > 0, tmp3 / tmp2, 0);
+        auto ratio = tmp5 * tmp4*1e6;
+
+        std::string title = "cloud (0.5um < r < 25um) droplet effective radius [μm]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [1:20]\n";
-	plotter.plot(gp, tmp);
+	plotter.plot(gp, ratio);
         }
         catch(...){}
       }
-      else if (plt == "ratio_mean_volue_r_to_eff_r_cubed")
+      else if (plt == "ratio_mean_volume_r_to_eff_r_cubed")
       {
         //Ratio of mean radius cubed k
         try{

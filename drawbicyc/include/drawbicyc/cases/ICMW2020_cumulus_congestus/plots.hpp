@@ -50,7 +50,7 @@ std::vector<std::string> profs_ICMW2020({
   //"gccn_rw_cl,"
   // "N_c",
   "actrw_reff_cl",
-  "ratio_mean_volue_r_to_eff_r_cubed",
+  "ratio_mean_volume_r_to_eff_r_cubed",
   "cloud_std_dev"
   //,"vel_div"
   //, "nc_up"
@@ -61,14 +61,14 @@ std::vector<std::string> profs_ICMW2020({
 
 std::vector<std::string> fields_ICMW2020({
   //"rl",
-  "nc",
-  "rliq",
+  "number_concentration",
+  "LWC",
   //"mass_conc_cloud",
-  "ratio_mean_volue_r_to_eff_r_cubed",
+  "ratio_mean_volume_r_to_eff_r_cubed",
   "cloud_std_dev",
   //"rr",
-  "nr",
-  "ef"
+  "rain_drops_concentration",
+  "effective_radius",
   //"na",
   //"th",
   //"rv"
