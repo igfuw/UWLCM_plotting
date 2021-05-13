@@ -18,7 +18,7 @@ profs_from_it = int(sys.argv[3])
 profs_to_it = int(sys.argv[4])
 qlimit = float(sys.argv[5])
 
-varlabels = ["{\it CuNc35}", "{\it CuNc55}", "{\it CuNc75}"]
+varlabels = ["{\it ScNc30}", "{\it ScNc40\_salt\_CCN}", "{\it ScNc45}", "{\it ScNc105}"]
 averaging_period = float(profs_to_it - profs_from_it) / 3600. # period over which series are averaged [h]; NOTE: we assume that series_from(to)_it = profs_from(to)_it / outfreq!
 
 # assumed initial GCCN concentrations
@@ -37,11 +37,11 @@ for no in file_no:
   series_file_names.append(sys.argv[no] + "series.dat")
   profs_file_names.append(sys.argv[no] + "profiles_"+str(profs_from_it)+"_"+str(profs_to_it)+".dat")
 
-assert(len(series_file_names) == 12)
+assert(len(series_file_names) == 16)
 
 label_counter=0
 
-for it in np.arange(12):
+for it in np.arange(16):
   if(it % 4 == 0):
     mean_surf_precip = []
     tot_acc_surf_precip = []

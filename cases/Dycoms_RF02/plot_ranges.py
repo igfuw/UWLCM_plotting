@@ -110,14 +110,14 @@ xlimdict_series = {
 
 ylimdict_series = {
   "clfrac" : None,
-  "cl_nc" : None,
+  "cl_nc" : (0,150),
   "cl_nr" : None,
-  "lwp" : None,
-  "er" : None,
-  "wvarmax" : None,
-  "surf_precip" : None,#(-0.01,0.5),
+  "lwp" : (50, 175),
+  "er" : (0,1.25),
+  "wvarmax" : (0,0.7),
+  "surf_precip" : (-0.01,1.25),#(-0.01,0.5),
   "acc_precip" : None,#(0,0.07),
-  "cloud_base" : None,
+  "cloud_base" : (400,650),
   "cl_gccn_conc" : None,#(1e-10,1e-0)
   "clb_bigrain_mean_rd" : None,
   "clb_bigrain_mean_kappa" :  None,

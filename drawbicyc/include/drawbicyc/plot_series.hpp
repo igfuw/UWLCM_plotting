@@ -97,19 +97,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       }
       catch(...){;}
 
-      if (plt == "clfrac")
+      if (plt == "cloud_cover_dycoms")
       {
-/*
-        try
-        {
-          // cloud fraction (cloudy if q_c > 0.1 g/kg)
-          // read activated droplets mixing ratio to res_tmp 
-          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          res_tmp = iscloudy_rc(snap); // find cells with rc>1e-5
-          res_prof(at) = blitz::mean(res_tmp); 
-        }
-*/
         try
         {
           auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; //g/kg
@@ -119,6 +108,22 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           plotter.k_i = blitz::sum(snap, plotter.LastIndex) * n["dz"]; // LWP [g/m2] in the column 
           plotter.k_i = where(plotter.k_i > 20 , 1 , 0); // cloudiness as in Ackermann et al. 
           res_prof(at) = blitz::mean(plotter.k_i);
+        }
+        catch(...){;}
+      }
+      else if (plt == "cloud_cover_rico")
+      {
+        try
+        {
+          // cloud fraction (fraction of columns with at least one cloudy cell, i.e. cell with  q_c > 0.01 g/kg)
+          auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          snap = iscloudy_rc_rico(snap); // find cells with rc>1e-5
+          snap(plotter.hrzntl_slice(0)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
+          plotter.k_i = blitz::sum(snap, plotter.LastIndex);
+          plotter.k_i = where(plotter.k_i > 0, 1, 0);
+          res_prof(at) = blitz::mean(plotter.k_i); 
         }
         catch(...){;}
       }
@@ -386,6 +391,18 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...) {;}
       }
+      else if (plt == "inversion_height_rico")
+      {
+	// height of cells with largest gradient of theta
+        try
+        {
+          typename Plotter_t::arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
+          auto grad = plotter.cent_diff_vert(th);
+          auto max_index = blitz::maxIndex(grad, plotter.LastIndex);
+          res_prof(at) = (blitz::mean(max_index) + 1) * n["dz"];
+        }
+        catch(...) {;}
+      }
       else if (plt == "nc")
       {
 	// cloud droplet (0.5um < r < 25 um) concentration
@@ -470,8 +487,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){;}
       }
-      else if (plt == "cloud_base")
+      else if (plt == "cloud_base_dycoms")
       {
+        // average cloud base in the domain
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
@@ -488,6 +506,27 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           plotter.k_i = where(cloudy_column == 0, 0, plotter.k_i);
           if(blitz::sum(cloudy_column) > 0)
             res_prof(at) = double(blitz::sum(plotter.k_i)) / blitz::sum(cloudy_column) * n["dz"];
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      else if (plt == "min_cloud_base_rico")
+      {
+        // lowest cloud base in the domain
+        try
+        {
+          // cloud fraction (cloudy if r_c > 1e-5)
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          snap = iscloudy_rc_rico(snap); 
+          snap(plotter.hrzntl_slice(0)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
+          auto cloudy_column = plotter.k_i.copy();
+          cloudy_column = blitz::sum(snap, plotter.LastIndex);
+          cloudy_column = where(cloudy_column > 0, 1, 0);
+          plotter.k_i = where(cloudy_column == 0, 1e6, plotter.k_i); // 1e6 denotes no clouds in the column
+          if(blitz::sum(cloudy_column) > 0)
+            res_prof(at) = blitz::min(plotter.k_i) * n["dz"];
           else
             res_prof(at) = 0;
         }
@@ -926,6 +965,43 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){;}
       }
+
+
+      else if (plt == "cl_rd_geq_0.8um_conc")
+      {
+	// gccn (r_d >= 0.8 um) concentration in cloudy grid cells
+        try
+        {
+          // cloud fraction (cloudy if N_c > 20/cm^3)
+          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          snap *= rhod; // b4 it was specific moment
+          snap /= 1e6; // per cm^3
+          snap = iscloudy(snap); // cloudiness mask
+          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("rd_geq_0.8um_rw_mom0", at * n["outfreq"]));
+          snap2 *= rhod; // b4 it was specific moment
+          snap2 /= 1e6; // per cm^3
+          snap2 *= snap;
+          if(blitz::sum(snap) > 0)
+            res_prof(at) = blitz::sum(snap2) / blitz::sum(snap); 
+          else
+            res_prof(at) = 0;
+        }
+        catch(...){;}
+      }
+      else if (plt == "rd_geq_0.8um_conc")
+      {
+	// gccn (r_d >= 0.8 um) concentration
+        try
+        {
+          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("rd_geq_0.8um_rw_mom0", at * n["outfreq"]));
+          snap2 /= 1e6; // per cm^3
+          snap2 *= rhod; // b4 it was per milligram
+          res_prof(at) = blitz::mean(snap2); 
+        }
+        catch(...){;}
+      }
+
+
       else if (plt == "cl_meanr")
       {
 	// cloud droplets mean radius in cloudy grid cells

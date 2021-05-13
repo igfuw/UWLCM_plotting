@@ -5,12 +5,18 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
   gp << "set yrange[*:*]\n";
   gp << "set xrange[*:*]\n";
 
-  if (plt == "clfrac")
+  if (plt == "cloud_cover_dycoms" || plt == "cloud_cover_rico")
   {
   //  res_pos *= 60.;
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
-    gp << "set title 'cloud fraction'\n";
+    gp << "set title 'cloud cover'\n";
+  }
+  else if (plt == "inversion_height_rico")
+  {
+    gp << "set ylabel 'inversion_height [m]'\n";
+    gp << "set xlabel 'time [min]'\n";
+    gp << "set title 'inversion height (RICO)'\n";
   }
   else if (plt == "ract_com")
   {
@@ -192,9 +198,15 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
-  else if (plt == "cloud_base")
+  else if (plt == "cloud_base_dycoms")
   {
     gp << "set title 'cloud base [m]'\n";
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
+  }
+  else if (plt == "min_cloud_base_rico")
+  {
+    gp << "set title 'lowest cloud base [m]'\n";
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
@@ -243,6 +255,18 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
   else if (plt == "non_gccn_conc")
   {
     gp << "set title 'average non gccn conc [1/cm^3]'\n";
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
+  }
+  else if (plt == "cl_rd_geq_0.8um_conc")
+  {
+    gp << "set title 'average conc with r_d>=0.8um in cloudy cells [1/cm^3]'\n";
+    gp << "set xlabel ''\n";
+    gp << "set ylabel ''\n";
+  }
+  else if (plt == "rd_geq_0.8um_conc")
+  {
+    gp << "set title 'average conc with r_d>=0.8um [1/cm^3]'\n";
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }

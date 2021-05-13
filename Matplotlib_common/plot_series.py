@@ -1,5 +1,6 @@
 import numpy as np
 from sys import argv
+from math import floor
 
 from latex_labels import var_labels
 from read_UWLCM_arrays import *
@@ -27,7 +28,14 @@ def plot_series(var_list, plot_iter, nplotx, nploty, axarr, xscaledict, yscaledi
   
       linestyles = ['--', '-.', ':']
       dashList = [(3,1),(1,1),(4,1,1,1),(4,2)] 
-      plot_my_array(axarr, plot_iter, my_times, my_res, nploty, xlabel=xlabel, ylabel=ylabeldict[var], varlabel=file_labels[label_counter], dashes = dashList[label_counter % len(dashList)], xscale=xscaledict[var], yscale=yscaledict[var], xlim=xlimdict[var], ylim=ylimdict[var], linewidth=linewidth)
+      colorList = ['red', 'blue', 'green']
+
+      # x label only on he lowest row
+      xlabel_used = xlabel
+      if plot_iter < nploty:
+        xlabel_used = ''
+
+      plot_my_array(axarr, plot_iter, my_times, my_res, nploty, xlabel=xlabel_used, ylabel=ylabeldict[var], varlabel=file_labels[label_counter], dashes = dashList[label_counter % len(dashList)], xscale=xscaledict[var], yscale=yscaledict[var], xlim=xlimdict[var], ylim=ylimdict[var], linewidth=linewidth)#, color = colorList[int(floor(label_counter / len(dashList)))])
       label_counter+=1
     plot_iter = plot_iter + 1
   return plot_iter

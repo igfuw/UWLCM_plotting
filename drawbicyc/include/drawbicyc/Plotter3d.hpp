@@ -88,6 +88,15 @@ class Plotter_t<3> : public PlotterCommon
     return blitz::safeToReturn(mean + 0);
   }
 
+  auto cent_diff_vert(
+    const arr_t &data
+  ) -> decltype(blitz::safeToReturn(blitz::Array<float, 3>() + 0))
+  {
+    blitz::Array<float, 3> grad(this->map["x"], this->map["y"], this->map["z"]-2);
+    grad = blitz::central12(data(blitz::Range::all(), blitz::Range::all(), blitz::Range(1,this->map["z"]-2)), blitz::thirdDim);
+    return blitz::safeToReturn(grad + 0);
+  }
+
   // returns a subset of data array away from walls, spacing is the distance from each wall that should be excluded
   auto nowall(
     const arr_t &data,

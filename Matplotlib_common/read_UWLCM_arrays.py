@@ -36,12 +36,18 @@ def read_my_var(file_obj, var_name):
 #  axarr[x, y].set_xscale(xscale)
 #  axarr[x, y].set_yscale(yscale)
 
-def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2), xlim=None, ylim=None, xscale="linear", yscale="linear", linewidth=1):
+def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2), xlim=None, ylim=None, xscale="linear", yscale="linear", linewidth=1, color=None):
   axflat = axarr.flatten() # flattening makes it work with 1d axarr
   if varlabel != None:
-    axflat[plot_iter].plot(time, val, label=varlabel, linestyle=linestyle, linewidth=linewidth, dashes=dashes)
+    if color != None:
+      axflat[plot_iter].plot(time, val, label=varlabel, linestyle=linestyle, linewidth=linewidth, dashes=dashes, color=color)
+    else:
+      axflat[plot_iter].plot(time, val, label=varlabel, linestyle=linestyle, linewidth=linewidth, dashes=dashes)
   else:
-    axflat[plot_iter].plot(time, val, linestyle=linestyle, linewidth=linewidth, dashes=dashes)
+    if color != None:
+      axflat[plot_iter].plot(time, val, linestyle=linestyle, linewidth=linewidth, dashes=dashes, color=color)
+    else:
+      axflat[plot_iter].plot(time, val, linestyle=linestyle, linewidth=linewidth, dashes=dashes)
   if xlabel:
     axflat[plot_iter].set_xlabel(xlabel)
   if ylabel:

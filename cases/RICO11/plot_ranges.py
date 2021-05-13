@@ -26,7 +26,10 @@ xscaledict = {
   "clb_bigrain_mean_kappa" :  "linear", 
   "clb_bigrain_mean_conc" :  "linear", 
   "clb_bigrain_mean_inclt" :  "linear", 
-  "clb_bigrain_mean_gccn_fraction" :  "linear" 
+  "clb_bigrain_mean_gccn_fraction" :  "linear", 
+  "cloud_cover_rico" : "linear",
+  "min_cloud_base_rico" : "linear",
+  "inversion_height_rico" : "linear"
 }
 
 yscaledict = {
@@ -57,7 +60,10 @@ yscaledict = {
   "clb_bigrain_mean_kappa" :  "linear", 
   "clb_bigrain_mean_conc" :  "linear", 
   "clb_bigrain_mean_inclt" :  "linear", 
-  "clb_bigrain_mean_gccn_fraction" :  "linear" 
+  "clb_bigrain_mean_gccn_fraction" :  "linear", 
+  "cloud_cover_rico" : "linear",
+  "min_cloud_base_rico" : "linear",
+  "inversion_height_rico" : "linear"
 }
 
 xlimdict_profs = {
@@ -112,7 +118,10 @@ xlimdict_series = {
   "clb_bigrain_mean_kappa" :  (0,10), 
   "clb_bigrain_mean_conc" :  (0,10), 
   "clb_bigrain_mean_inclt" :  (0,10), 
-  "clb_bigrain_mean_gccn_fraction" :  (0,10) 
+  "clb_bigrain_mean_gccn_fraction" :  (0,10),
+  "cloud_cover_rico" : (0,10),
+  "min_cloud_base_rico" : (0,10),
+  "inversion_height_rico" : (0,10)
 }
 
 ylimdict_series = {
@@ -131,5 +140,8 @@ ylimdict_series = {
   "clb_bigrain_mean_kappa" :  None, 
   "clb_bigrain_mean_conc" :  None, 
   "clb_bigrain_mean_inclt" :  None, 
-  "clb_bigrain_mean_gccn_fraction" :  None 
+  "clb_bigrain_mean_gccn_fraction" :  None, 
+  "cloud_cover_rico" : None,
+  "min_cloud_base_rico" : None,
+  "inversion_height_rico" : None
 }

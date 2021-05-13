@@ -13,11 +13,11 @@ from latex_labels import labeldict
 # activate latex text rendering
 rc('text', usetex=True)
 
-#rico_vars = ["lwp", "rwp", "surf_precip", "acc_precip", "cl_nc"]
-rico_vars = ["clb_bigrain_mean_rd","clb_bigrain_mean_kappa","clb_bigrain_mean_conc","clb_bigrain_mean_inclt", "cl_nr"]
+rico_vars = ["lwp", "rwp", "cloud_cover_rico", "min_cloud_base_rico", "inversion_height_rico", "cl_nc", "cl_nr", "acc_precip", "surf_precip"]#, "surf_flux_latent", "surf_flux_sensible" ]
+#rico_vars = ["clb_bigrain_mean_rd","clb_bigrain_mean_kappa","clb_bigrain_mean_conc","clb_bigrain_mean_inclt", "cl_nr"]
 
 # init the plot
-nplotx = 2
+nplotx = 3
 nploty= 3
 fig, axarr = plt.subplots(nplotx,nploty)
 

@@ -83,6 +83,15 @@ class Plotter_t<2> : public PlotterCommon
     return blitz::safeToReturn(mean + 0);
   }
 
+  auto cent_diff_vert(
+    const arr_t &data
+  ) -> decltype(blitz::safeToReturn(blitz::Array<float, 2>() + 0))
+  {
+    blitz::Array<float, 2> grad(this->map["x"], this->map["z"]-2);
+    grad = blitz::central12(data(blitz::Range::all(), blitz::Range(1,this->map["z"]-2)), blitz::secondDim);
+    return blitz::safeToReturn(grad + 0);
+  }
+
   blitz::RectDomain<2> hrzntl_slice(const int &z)
   {
     return blitz::RectDomain<2>( blitz::TinyVector<blitz::Range, 2>(blitz::Range(0, this->map["x"]-1), blitz::Range(z,z)));

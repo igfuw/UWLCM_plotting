@@ -1,6 +1,7 @@
 #pragma once
 
 #include <blitz/array.h>
+#include <blitz/array/stencil-et.h>
 #include <H5Cpp.h>
 #include <map>
 

@@ -14,15 +14,15 @@ from latex_labels import labeldict
 # activate latex text rendering
 rc('text', usetex=True)
 
-#dycoms_vars = ["lwp", "er", "wvarmax", "surf_precip", "cl_nc", "cloud_base"]# "cfrac"]
-dycoms_vars = ["clb_bigrain_mean_rd","clb_bigrain_mean_kappa","clb_bigrain_mean_conc","clb_bigrain_mean_inclt", "cl_nr"]
+dycoms_vars = ["lwp", "er", "wvarmax", "surf_precip", "cl_nc", "cloud_base"]#, "cfrac"]
+#dycoms_vars = ["clb_bigrain_mean_rd","clb_bigrain_mean_kappa","clb_bigrain_mean_conc","clb_bigrain_mean_inclt", "cl_nr"]
 
 # init the plot
 nplotx = 2
 nploty= 3
 fig, axarr = plt.subplots(nplotx,nploty)
 
-plot_reference_series(dycoms_vars, 0, nplotx, nploty, axarr)
+#plot_reference_series(dycoms_vars, 0, nplotx, nploty, axarr)
 plot_series(dycoms_vars, 0, nplotx, nploty, axarr, xscaledict, yscaledict, xlimdict_series, ylimdict_series, xlabel='Time [h]')
 
 # show legends on each subplot

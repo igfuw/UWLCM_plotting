@@ -6,7 +6,10 @@ const std::vector<std::string> series_rico({
 // "clb_bigrain_mean_conc",
 // "clb_bigrain_mean_inclt",
 //, "clb_bigrain_mean_gccn_fraction"
- "clfrac", "lwp",
+ "cloud_cover_rico",
+ "min_cloud_base_rico",
+ "inversion_height_rico",
+ "lwp",
  "rwp",
  "surf_precip",
  "acc_precip",
@@ -29,15 +32,17 @@ const std::vector<std::string> series_rico({
 
 std::vector<std::string> profs_rico({
 "00rtot"
+,"rd_lt_0.8um_conc"
+,"rd_geq_0.8um_conc"
 //, "rliq", "thl", "wvar", 
- ,"prflux"
+// ,"prflux"
 //,"clfrac"
 //,"sd_conc"
-,"cl_nc"
+//,"cl_nc"
 //,"cl_nc_up"
 //,"w"
 //,"u", "v"
-,"base_prflux_vs_clhght"
+//,"base_prflux_vs_clhght"
 //, "non_gccn_rw_cl"
 //, "gccn_rw_cl"
 //,"sat_RH_up"
