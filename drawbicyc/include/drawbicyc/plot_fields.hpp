@@ -48,13 +48,25 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){}
       }
-      else if (plt == "mass_conc_cloud")
+      else if (plt == "mass_conc_cloud_droplets")
       {
         //mass concentration of cloud droplets qc
         try{
-        auto tmp = plotter.h5load_timestep("actrw_rc_mom3", at * n["outfreq"]) * 4. / 3 * 3.14 * 1e3 / rhod;
+        auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4. / 3 * 3.14 * 1e3 / rhod;
 
         std::string title = " mass concentration of cloud droplets q_c";
+        gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
+        plotter.plot(gp, tmp);
+        }
+        catch(...){} 
+      }
+      else if (plt == "mass_conc_rain_drops")
+      {
+        //mass concentration of cloud droplets qc
+        try{
+        auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4. / 3 * 3.14 * 1e3 / rhod;
+
+        std::string title = " mass concentration of rain drops q_r";
         gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         plotter.plot(gp, tmp);
         }
@@ -86,12 +98,12 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){}
       }
-      else if (plt == "number_concentration")
+      else if (plt == "num_conc_droplets")
       {
 	// cloud particle concentration
         try{
 	auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]) * 1e-6;
-	std::string title ="activated droplet spec. conc. [mg^{-1}]";
+	std::string title ="activated droplets spec. conc. [mg^{-1}]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [0:150]\n";
 	plotter.plot(gp, tmp);
@@ -114,12 +126,12 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){}
       }
-      else if (plt == "rain_drops_concentration")
+      else if (plt == "num_conc_rain_drops")
       {
         try{
 	// rain particle concentration
 	auto tmp = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]) * 1e-6;
-	std::string title = "rain (r > 25um) drop spec. conc. [mg^{-1}]";
+	std::string title = "rain (r > 25um) drops spec. conc. [mg^{-1}]";
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [.01:10]\n";
 	gp << "set logscale cb\n";
@@ -142,7 +154,7 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         auto tmp5 = where(tmp2 > 0, tmp3 / tmp2, 0);
         auto ratio = tmp5 * tmp4*1e6;
 
-        std::string title = "cloud (0.5um < r < 25um) droplet effective radius [μm]"; 
+        std::string title = "act. droplet effective radius [μm]"; 
 	gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
 //	gp << "set cbrange [1:20]\n";
 	plotter.plot(gp, ratio);
@@ -170,7 +182,7 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...){}
       }
-      else if (plt == "cloud_std_dev")
+      else if (plt == "std_dev_droplet_size_dist")
       {
         //Stadndard deviation of the size distribution
         try{
@@ -185,7 +197,7 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
         auto tmp5 = sqrt(tmp4);
         auto tmp6 = tmp5 * tmp3 * 1e6;
 
-        std::string title = "Standardi deviation of the size distribution [um]";
+        std::string title = "Standard deviation of the size distribution [um]";
         gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";
         plotter.plot(gp, tmp6);
         }

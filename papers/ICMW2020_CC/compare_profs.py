@@ -39,14 +39,14 @@ file_no = (len(sys.argv) - 2.) / 3
 
 
 for prof in profs:
-  print prof
+  print( prof)
 
   for no in np.arange(2, 3*file_no+2, 3):
     ino = int(no)
     time = sys.argv[ino+2]
-    print ino,time
+    print (ino,time)
     file_name = sys.argv[ino] + "_" + str(time) + "_" + str(time) + ".dat"
-    print file_name
+    print (file_name)
     profs_file = open(file_name, "r")
     my_hgt = read_my_var(profs_file, "position")
     my_prof = read_my_var(profs_file, prof)
