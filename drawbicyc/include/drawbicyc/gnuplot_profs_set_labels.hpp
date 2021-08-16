@@ -12,6 +12,14 @@ void gnuplot_profs_set_labels(Gnuplot &gp, std::string plt, const bool normalize
   {
     gp << "set title 'liquid water [g/kg]'\n";
   }
+  if (plt == "cloud_water_std")
+  {
+    gp << "set title 'cloud water [g/kg]'\n";
+  }
+  if (plt == "rain_water_std")
+  {
+    gp << "set title 'rain water [g/kg]'\n";
+  }
   if (plt == "gccn_rw")
   {
     gp << "set title 'gccn-based droplets mean wet radius'\n";

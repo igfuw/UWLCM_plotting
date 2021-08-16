@@ -51,6 +51,8 @@ std::vector<std::string> profs_ICMW2020({
   // "N_c",
   "actrw_reff_cl",
   "ratio_mean_volume_r_to_eff_r_cubed",
+  "cloud_water_std",
+  "rain_water_std",
   "cloud_std_dev"
   //,"vel_div"
   //, "nc_up"

@@ -101,6 +101,32 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
 	prof_tmp = plotter.horizontal_sum(rc_mask);
         res_prof_hlpr = where(prof_tmp > 0, plotter.horizontal_sum(res) / prof_tmp, 0);
       }
+      if (plt == "cloud_water_std")
+      {
+        // cloud_water_std
+        res = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
+        //typename Plotter_t::arr_t rc_mask(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        //rc_mask = iscloudy_rc_rico(rc_mask);
+        rc_mask = iscloudy_rc_rico(res);
+        res_prof = res * rc_mask;
+        res_prof_num = plotter.horizontal_sum(rc_mask);
+        res_mean = plotter.horizontal_sum(res_prof) / res_prof_num;
+        res_sum = plotter.horizontal_sum((res_prof - res_mean) * (res_prof - res_mean)) / (res_prof_num -1);
+        res_prof_hlpr = where(rc_mask >0 , sqrt(res_sum) , 0);
+      }
+      if (plt == "rain_water_std")
+      {
+        // rain_water_std
+        res = plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // cloud
+        //typename Plotter_t::arr_t rc_mask(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        //rc_mask = iscloudy_rc_rico(rc_mask);
+        rc_mask = iscloudy_rc_rico(res);
+        res_prof = res * rc_mask;
+        res_prof_num = plotter.horizontal_sum(rc_mask);
+        res_mean = plotter.horizontal_sum(res_prof) / res_prof_num;
+        res_sum = plotter.horizontal_sum((res_prof - res_mean) * (res_prof - res_mean)) / (res_prof_num -1);
+        res_prof_hlpr = where(rc_mask >0 , sqrt(res_sum) , 0);
+      }
       if (plt == "gccn_rw")
       {
 	// gccn (rd>1um) droplets dry radius
