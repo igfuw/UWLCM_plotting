@@ -5,10 +5,11 @@ import numpy as np
 from sys import argv
 import matplotlib.pyplot as plt
 
-#velocities = ["u", "v", "w"]
-velocities = ["u", "v", "w", "cloud_rw_mom3", "rv", "th", "RH", "aerosol_rw_mom3"]
-#velocities = ["cloud_rw_mom3"]
-# velocities = ["w"]
+# velocities = ["u", "v", "w"]
+# velocities = ["u", "v", "w", "cloud_rw_mom3", "rv", "th", "RH", "aerosol_rw_mom3"]
+# velocities = ["u", "w", "cloud_rw_mom3", "rv", "th", "RH", "actrw_rw_mom3"]
+velocities = ["cloud_rw_mom3", "actrw_rw_mom3"]
+# velocities = ["u"]
 
 time_start = int(argv[1])
 time_end = int(argv[2])
@@ -23,41 +24,48 @@ print(directories, labels)
 # read in nx, ny, nz
 for directory, lab in zip(directories, labels):
   w3d = h5py.File(directory + "/timestep" + str(time_start).zfill(10) + ".h5", "r")["u"][:,:]
-  nx, ny, nz = w3d.shape
+  nx, nz = w3d.shape
   Exy_avg = {}
   for vel in velocities:
-    Exy_avg[vel] = np.zeros(((nx+1)/2))
+    Exy_avg[vel] = np.zeros(int((nx+1)/2))
 
   for t in range(time_start, time_end+1, outfreq):
     filename = directory + "/timestep" + str(t).zfill(10) + ".h5"
     print(filename)
 
     for vel in velocities:
-
-      w3d = h5py.File(filename, "r")[vel][:,:,:] # * 4. / 3. * 3.1416 * 1e3
+      if (vel == "cloud_rw_mom3") | (vel == "actrw_rw_mom3"):
+        w3d = h5py.File(filename, "r")[vel][:,:]# * 4. / 3. * 3.1416 * 1e3
+      else:
+        w3d = h5py.File(filename, "r")[vel][:,:] # * 4. / 3. * 3.1416 * 1e3
 
       for lvl in range(from_lvl, to_lvl+1):
-        w2d = w3d[:, :, lvl]
-
+        w2d = w3d[:, lvl]
+<<<<<<< HEAD
+        # print(w2d)
+=======
+>>>>>>> acb609f27a00d77f0818e5edfbeeadf46112742a
         wkx = 1.0 / np.sqrt(nx - 1) * np.fft.rfft(w2d, axis = 0)
-        wky = 1.0 / np.sqrt(ny - 1) * np.fft.rfft(w2d, axis = 1)
+
+        # wky = 1.0 / np.sqrt(nz - 1) * np.fft.rfft(w2d, axis = 1)
 
         #Ex = 0.5 * (np.abs(wkx) ** 2)
         Ex = (np.abs(wkx) ** 2)
-        Ex = np.mean(Ex, axis = 1)
+        # Ex = np.mean(Ex)
         #Ey = 0.5 * (np.abs(wky) ** 2)
-        Ey = (np.abs(wky) ** 2)
-        Ey = np.mean(Ey, axis = 0)
+        # Ey = (np.abs(wky) ** 2)
+        # Ey = np.mean(Ey, axis = 0)
 
-        Exy = 0.5 * (Ex + Ey)
+        # Exy = 0.5 * (Ex + Ey)
+        Exy = Ex
         Exy_avg[vel] += Exy
 
       K = np.fft.rfftfreq(nx - 1)
   #    plt.loglog(K, Exy)
-      lmbd = 50. / K # assume dx=50m
+      lmbd = 100. / K # assume dx=50m
 
     if (t == time_start and lab==labels[0]):
-      plt.loglog(lmbd, 2e-1* K**(-5./3.) )
+      plt.loglog(lmbd, 2e-1* K**(-5./3.)*1e-8, label="-5/3" )
 
   for vel in velocities:
     Exy_avg[vel] /= (time_end - time_start) / outfreq + 1
@@ -66,10 +74,10 @@ for directory, lab in zip(directories, labels):
   #  Exy_avg[vel] /= Exy_avg[vel][len(Exy_avg[vel])-1]
     plt.loglog(lmbd, Exy_avg[vel] , linewidth=2, label=lab+"_"+vel)
 
-plt.xlim(10**4,10**2)
+plt.xlim(2*10**4,10**2)
 plt.xlabel("l[m]")
 plt.ylabel("PSD")
 plt.legend()
 plt.grid(True, which='both', linestyle='--')
-plt.title("Mean PSD of w 322m<z<642m @3h")
+# plt.title("Mean PSD of w 322m<z<642m @3h")
 plt.show()
