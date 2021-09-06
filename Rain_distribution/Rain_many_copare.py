@@ -38,14 +38,9 @@ timesteps = timesteps[1:91]
 np.set_printoptions(threshold=maxsize)
 
 
-paths = argv[1]
-outfile = argv[2]
-files = os.listdir(paths)
-nr_files = len(files)
-
-
-def Adia_fraction(timestep):
-
+def Adia_fraction(timestep, paths):
+    files = os.listdir(paths)
+    nr_files = len(files)
     rhod= [0 for i in range(nr_files)]
     p_e = [0 for i in range(nr_files)]
     dz = [0 for i in range(nr_files)]
@@ -108,20 +103,27 @@ def Adia_fraction(timestep):
         # print(file)
     srednie_rr = np.nanmean(sum_rr, axis=0)
     STD_rr = np.nanstd(sum_rr, axis=0)
-    fig = plt.figure()
-    fig.set_size_inches(18.5, 10.5)
-    plt.errorbar(bin, srednie_rr, STD_rr, fmt='o', label='average')
-    # plt.ylim((0,0.04))
-    plt.xlim((0,120))
-    plt.xlabel('cell#')
-    plt.ylabel('$q_l$ (rain) [g/kg]')
-    plt.legend()
-    plt.savefig(outfile + 'Rain_many_' + str(i*240) +'.png')
-    # Od komentuj!
-    plt.clf()
+    return(srednie_rr, STD_rr, bin)
 
 # bin_size = bin[2]-bin[1]
 # print(bin_size)
+outfile = argv[1]
+paths = argv[2:len(argv):2]
+labels = argv[3:len(argv):2]
+
 
 for i in range(1, 91):
-    Adia_fraction(i)
+    fig = plt.figure()
+    fig.set_size_inches(18.5, 10.5)
+    for path, lab in zip(paths, labels):
+        average, std , bin= Adia_fraction(i, path)
+        plt.errorbar(bin, average, std, fmt='o',label=lab)
+    plt.ylim((0))
+    plt.xlim((0,120))
+    plt.xlabel('cell#')
+    plt.ylabel('$q_l$ (rain) [g/kg]')
+    plt.title('time = '+str(i*240) +' s')
+    plt.legend()
+    plt.savefig(outfile + 'Average_rain_many_' + str(i*240) +'.png')
+    # Od komentuj!
+    plt.clf()

@@ -20,8 +20,8 @@ python3 spectrum_2D_multi_many.py 14400 15600 240 10 80 /home/piotr-pc/Piotr/WOR
 # velocities = ["u", "v", "w", "cloud_rw_mom3", "rv", "th", "RH", "aerosol_rw_mom3"]
 # velocities = ["u", "w", "cloud_rw_mom3", "rv", "th", "RH", "actrw_rw_mom3"]
 # velocities = ["cloud_rw_mom3", "actrw_rw_mom3"]
-velocities = ["cloud_rw_mom3"]
-# velocities = ["u"]
+# velocities = ["cloud_rw_mom3"]
+velocities = ["u"]
 
 start = time.perf_counter()
 time_start = int(argv[1])
@@ -29,11 +29,11 @@ time_end = int(argv[2])
 outfreq = int(argv[3])
 from_lvl = int(argv[4])
 to_lvl = int(argv[5])
+outfile = argv[6]
+directories = argv[7:len(argv):2]
 
-directories = argv[6:len(argv):2]
+labels = argv[8:len(argv):2]
 
-labels = argv[7:len(argv):2]
-outfile = argv[8]
 
 # input_array = [directories[math.floor(i/2)] if i%2==0  else labels[math.floor(i/2)] for i in range(len(directories)*2)]
 # input_array = list(zip(directories, labels))
