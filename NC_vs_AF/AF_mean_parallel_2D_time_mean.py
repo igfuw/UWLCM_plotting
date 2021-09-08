@@ -16,6 +16,9 @@ python3 AF_mean_parallel_2D.py /home/piotr-pc/Piotr/WORKSHOPS/Dane_do_AF_2D/Dane
 
 python3 AF_mean_parallel_2D.py /home/piotr-pc/Piotr/WORKSHOPS/Dane_do_AF_2D/Dane/SD100/VF/ /home/piotr-pc/Piotr/WORKSHOPS/Dane_do_AF_2D/
 
+Singularity> python3 AF_mean_parallel_2D_time_mean.py /home/piotr-pc/Piotr/WORKSHOPS/Dane_do_AF_2D/Dane/SD100/VF/ /home/piotr-pc/Piotr/WORKSHOPS/Dane_do_AF_2D/
+
+
 '''
 
 import h5py
@@ -149,15 +152,13 @@ def Adia_fraction(i):
   ######Biny
     AF = AF_min * cloudy_mask_used
     AF[AF==0]=np.nan
-    print(np.nanmean(AF, axis=0))
 
     for k in np.arange(nz):
         Biny[k] = np.digitize(AF[:,k],bin)
         Biny[k] = np.bincount(Biny[k])
         Biny[k] = np.pad(Biny[k], (0, (len(bin)+1)-len(Biny[k])), mode='constant')
+        Biny[k] = np.where(Biny[k] != 0, Biny[k], np.nan)
         Biny_x[k] = np.log10(Biny[k]/bin_size)
-    print(Biny_x)
-
 
     AF_min[AF_min==0] = np.nan
     AF_min[cloudy_mask_used==0] = np.nan
@@ -165,35 +166,48 @@ def Adia_fraction(i):
     bins = np.array(Biny_x)
     bins = bins[:,:-1]
 
+    return bins, AF_mean_min, hght, bin
 
+
+# plt.show()
+
+punkty = np.intc(np.linspace(1,91,91))
+# with concurrent.futures.ProcessPoolExecutor() as executor:
+    # results = executor.map(Adia_fraction, punkty)
+# Adia_fraction(50)
+
+
+# +1 zeby doliczyc
+bin_data = [0 for i in range(91-1)]
+BIN =[]
+b=0
+for i in range(1,91):
     fig,ax = plt.subplots(figsize=(11, 8))
     axins = inset_axes(ax,
-               width="50%", # width = 10% of parent_bbox width
-               height="5%", # height : 50%
-               loc=2,
-               bbox_to_anchor=(0.4, 0., 1, 1),
-               bbox_transform=ax.transAxes,
-               borderpad=0,
-               )
-    e = ax.contourf( bin, hght, bins, 200, cmap='gnuplot') #bin[1:]
+           width="50%", # width = 10% of parent_bbox width
+           height="5%", # height : 50%
+           loc=2,
+           bbox_to_anchor=(0.4, 0., 1, 1),
+           bbox_transform=ax.transAxes,
+           borderpad=0,
+           )
+    bins, AF_mean_min, hght, bin = Adia_fraction(i)
+    bin_data[b] = bins
+    BIN = np.nanmean(bin_data[:b+1], axis=0)
+    BIN = np.array(BIN)
+    e = ax.contourf( bin, hght, BIN, 200, cmap='gnuplot') #bin[1:]
     cbar = plt.colorbar(e, cax=axins,  orientation='horizontal', label=r"$log_{10}$($\frac{m^{3}}{\frac{unit AF}{m}}$)", format='%.2f')
     ax.set_ylabel('Height [m]')
     ax.set_xlabel('AF []')
     ax2=ax.twinx()
-    ax2.plot(AF_mean_min , hght, label="AF", c='k', linewidth=1)
+    ax2.plot(AF_mean_min , hght, label="AF", c='r', linewidth=3)
     ax2.set_xlim((0.01,1.4))
     ax2.set_ylim((0,10000))
     ax2.set_yticks([], [])
     ax2.set_yticks([], minor=True)
     plt.title('time = '+str(i*240)+ 's')
-    plt.savefig(outfile + '/AF_average/MELO_' + str(240*i).zfill(10) +'.png')
-    # plt.show()
+    plt.savefig(outfile + '/AF_average/Cumulative_AF_' + str(240*i).zfill(10) +'.png')
+    b += 1
 
-punkty = np.intc(np.linspace(1,91,91))
-with concurrent.futures.ProcessPoolExecutor() as executor:
-    results = executor.map(Adia_fraction, punkty)
-
-# for i in range(1,91):
-# Adia_fraction(50)
 finish = time.perf_counter()
 print(f'Finished in {round(finish-start,2)} seconds(s)')
