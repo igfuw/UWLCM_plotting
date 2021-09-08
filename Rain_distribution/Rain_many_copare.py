@@ -107,23 +107,28 @@ def Adia_fraction(timestep, paths):
 
 # bin_size = bin[2]-bin[1]
 # print(bin_size)
-outfile = argv[1]
-paths = argv[2:len(argv):2]
-labels = argv[3:len(argv):2]
+time_start = int(argv[1])
+time_end = int(argv[2])
+outfreq = int(argv[3])
+outfile = argv[4]
+paths = argv[5:len(argv):2]
+labels = argv[6:len(argv):2]
 
 
-for i in range(1, 91):
-    fig = plt.figure()
-    fig.set_size_inches(18.5, 10.5)
+for i in range(time_start/outfreq, time_end/outfreq+1):
+
     for path, lab in zip(paths, labels):
         average, std , bin= Adia_fraction(i, path)
-        plt.errorbar(bin, average, std, fmt='o',label=lab)
-    plt.ylim((0))
-    plt.xlim((0,120))
-    plt.xlabel('cell#')
-    plt.ylabel('$q_l$ (rain) [g/kg]')
-    plt.title('time = '+str(i*240) +' s')
-    plt.legend()
-    plt.savefig(outfile + 'Average_rain_many_' + str(i*240) +'.png')
-    # Od komentuj!
-    plt.clf()
+
+fig = plt.figure()
+fig.set_size_inches(18.5, 10.5)
+plt.errorbar(bin, average, std, fmt='o',label=lab)
+plt.ylim((0))
+plt.xlim((0,120))
+plt.xlabel('cell#')
+plt.ylabel('$q_l$ (rain) [g/kg]')
+plt.title('time = '+str(i*240) +' s')
+plt.legend()
+plt.savefig(outfile + 'Average_rain_many_for_time range_'+str(time_start)+'_to_'+ str(time_end)+'.png')
+# Od komentuj!
+plt.clf()
