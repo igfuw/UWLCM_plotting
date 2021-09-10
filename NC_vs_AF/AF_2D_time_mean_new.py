@@ -4,8 +4,8 @@
 from sys import argv, path, maxsize
 #path.insert(0,"../../local_folder/uptodate/lib/python3/dist-packages")
 # path.insert(0,"/home/piotr/Piotr/IGF/local_install/parcel/lib/python3/dist-packages")
-# path.insert(0,"/home/pzmij/biblioteki/local_folder/16_03/lib/python3/dist-packages")
-path.insert(0,"/home/piotr-pc/Piotr/IGF/local_install/parcel/lib/python3/dist-packages")
+path.insert(0,"/home/pzmij/biblioteki/local_folder/16_03/lib/python3/dist-packages")
+# path.insert(0,"/home/piotr-pc/Piotr/IGF/local_install/parcel/lib/python3/dist-packages")
 
 
 '''
@@ -82,7 +82,7 @@ def Adia_fraction(i):
     p_e = np.mean(p_e,axis=0)
     dz = np.mean(dz,axis=0)
     rl = np.mean(rl,axis=0)
-    rl_base = np.mean(rl_base,axis=0)
+    # rl_base = np.mean(rl_base,axis=0)
     nc = np.mean(nc,axis=0) * rhod / 1e6# 1 / cm^3
     th = np.mean(th,axis=0)
     rv = np.mean(rv,axis=0)
@@ -95,13 +95,14 @@ def Adia_fraction(i):
 
     # plt.clf()
     # ---- adiabatic LWC ----
-    AF_min = np.zeros([nx, nz])
+    AF_min = [np.zeros([nx, nz]) for i in range(len(const))]
     adia_rl = np.zeros([nz])
     adia_rl_min = np.zeros([nz])
     clb_rv_min = np.zeros([nx])
     clb_th_min = np.zeros([nx])
-    Biny = [0 for i in np.arange(nz)]
+    Biny = [0 for i in range(len(const))]
     Biny_x = [0 for i in np.arange(nz)]
+    Biny_finish = [0 for i in np.arange(nz)]
     Slice = np.zeros([nx, nz])
     cloudy_mask = np.where(rl > 1e-5, 1, 0)
     cloudy_mask_used = cloudy_mask
@@ -139,48 +140,41 @@ def Adia_fraction(i):
       parcel_rl_min += delta_rv_min
       adia_rl_min[k] = parcel_rl_min
 
-    for j in np.arange(nx):
+    for p in range(len(const)):
+      for j in np.arange(nx):
         for k in np.arange(nz):
-           if adia_rl_min[k] == 0:
-             AF_min[j, k] = 0
-           else:
-             AF_min[j, k] = rl[j,k] / adia_rl_min[k]
-
-  ######Biny
-    AF = AF_min * cloudy_mask_used
-    #AF[AF==0]=np.nan
-    print(np.count_nonzero(AF) )
-
-    for k in np.arange(nz):
-        #Biny[k] = np.digitize(AF[:,k],bin)
-        #Biny[k] = np.bincount(Biny[k])
-        #Biny[k] = np.pad(Biny[k], (0, (len(bin)+1)-len(Biny[k])), mode='constant')
-        #Biny[k] = np.where(Biny[k] != 0, Biny[k], np.nan)
-        #Biny_x[k] = np.log10(Biny[k]/bin_size)
+          if adia_rl_min[k] == 0:
+            AF_min[p][j, k] = 0
+          else:
+            AF_min[p][j, k] = rl_base[p][j,k] / adia_rl_min[k]
+######Biny
+      AF = AF_min[p] * cloudy_mask_used
+      AF[AF==0]=np.nan
+      # print(np.count_nonzero(AF) )
+      for k in np.arange(nz):
         Biny_x[k], bin = np.histogram(AF[:,k], bins=nx, range =[0, 1.4])
-        print(np.count_nonzero(AF[:,k]), np.count_nonzero(Biny_x[k]))
-    #print(Biny_x)
-    print(np.count_nonzero(Biny_x)-nz)
+        # print(np.count_nonzero(AF[:,k]), np.count_nonzero(Biny_x[k]))
+      Biny[p] = Biny_x
+    # print(np.count_nonzero(Biny_x)-nz)
+
+    AF_min = AF_min * cloudy_mask_used
     AF_min[AF_min==0] = np.nan
-    AF_min[cloudy_mask_used==0] = np.nan
-    AF_mean_min = np.nanmean(AF_min, axis=0)
-    bins = np.array(np.log10(Biny_x/(bin[2]-bin[1])))
+    # AF_min[cloudy_mask_used==0] = np.nan
+    AF_mean_min = np.nanmean(AF_min, axis=(0,1))
+    # Biny_finish = np.nanmean(Biny, axis=0)
+    bins = np.array(np.log10(Biny/(bin[2]-bin[1])))
     #bins = bins[:,:-1]
-    #print(bins)
-    #return bins, AF_mean_min, hght, bin
-    #print(np.count_nonzero(AF_min) )
     return bins, AF_mean_min, hght, bin[:-1]
 
-# plt.show()
 
-punkty = np.intc(np.linspace(1,91,91))
+# punkty = np.intc(np.linspace(1,91,91))
 # with concurrent.futures.ProcessPoolExecutor() as executor:
     # results = executor.map(Adia_fraction, punkty)
 Adia_fraction(80)
 
 #print(Adia_fraction(80))
 
-'''
+
 # +1 zeby doliczyc
 bin_data = [0 for i in range(91-1)]
 BIN =[]
@@ -199,7 +193,8 @@ for i in range(1,91):
     #bin_data[b] = bins
     #BIN = np.nanmean(bin_data[:b+1], axis=0)
     #BIN = np.array(BIN)
-    e = ax.contourf( bin, hght, bins, 200, cmap='gnuplot') #bin[1:]
+    for p in range(len(const)):
+      e = ax.contourf( bin, hght, bins[p], 200, cmap='gnuplot') #bin[1:]
     cbar = plt.colorbar(e, cax=axins,  orientation='horizontal', label=r"$log_{10}$($\frac{m^{3}}{\frac{unit AF}{m}}$)", format='%.2f')
     ax.set_ylabel('Height [m]')
     ax.set_xlabel('AF []')
@@ -215,4 +210,3 @@ for i in range(1,91):
 
 finish = time.perf_counter()
 print(f'Finished in {round(finish-start,2)} seconds(s)')
-'''

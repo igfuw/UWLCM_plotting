@@ -102,7 +102,8 @@ def Adia_fraction(timestep, paths):
 
         for j in np.arange(nx):
           if clb_idx[j] > 0:
-            sum_rr[file][j] = np.sum(rr[file][j,:int(min_hght/dz[file])-1],0)
+            # sum_rr[file][j] = np.sum(rr[file][j,:int(min_hght/dz[file])-1],0)
+            sum_rr[file][j] = np.sum(rr[file][j,int(min_hght/dz[file])-1],0)
         sum_rr[file][sum_rr[file]==0] = np.nan
         # print(file)
     srednie_rr = np.nanmean(sum_rr, axis=0)
