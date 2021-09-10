@@ -41,7 +41,7 @@ for timestep in timesteps:
   rr_rows_clb = np.zeros((121, len(file_names)))
   rr_rows_lvl0 = np.zeros((121, len(file_names)))
   for p in range(len(file_names)):
-    path = paths+file_names[p]
+    path = paths+file_names[p]+'/'+file_names[p]+'_out_lgrngn'
     rhod = h5py.File(path + "/const.h5", "r")["G"][:,:]
     p_e = h5py.File(path + "/const.h5", "r")["p_e"][:]
     nx, nz = rhod.shape
@@ -109,5 +109,5 @@ for timestep in timesteps:
   ax1.set_title('Height = {}m'.format(int(0)))
   fig.suptitle('Current time {}s '.format(int(timestep/2)))
   plt.axis(aspect='image')
-  plt.savefig(outfile + '/Multi_SD10000_' + str(int(timestep/2)) +'.png')
+  plt.savefig(outfile + '/Multi_SD100_' + str(int(timestep/2)) +'.png')
   plt.close()

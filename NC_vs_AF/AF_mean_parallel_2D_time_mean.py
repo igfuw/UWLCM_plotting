@@ -47,7 +47,7 @@ np.set_printoptions(threshold=maxsize)
 n = len(argv)
 paths = argv[1]
 outfile = argv[2]
-
+lab = argv[3]
 const = os.listdir(paths)
 # nr_files = len(files)
 # const = [argv[i] for i in range(2,n)]
@@ -73,7 +73,7 @@ def Adia_fraction(i):
         rhod[p] = h5py.File(filename + "/const.h5", "r")["G"][:,:]
         p_e[p] = h5py.File(filename + "/const.h5", "r")["p_e"][:]
         dz[p] = h5py.File(filename + "/const.h5", "r").attrs["dz"]
-        rl[p] = (h5py.File(filename + "/timestep" + str(240*i).zfill(10) + ".h5", "r")["actrw_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
+        rl[p] = (h5py.File(filename + "/timestep" + str(240*i).zfill(10) + ".h5", "r")["cloud_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
         rl_base[p] = (h5py.File(filename + "/timestep" + str(240*i).zfill(10) + ".h5", "r")["cloud_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
         nc[p] = h5py.File(filename + "/timestep" + str(240*i).zfill(10) + ".h5", "r")["cloud_rw_mom0"][:,:]
         th[p] = h5py.File(filename + "/timestep" + str(240*i).zfill(10) + ".h5", "r")["th"][:,:];
@@ -119,9 +119,6 @@ def Adia_fraction(i):
     hght_2[hght_2==0] = np.nan
     min_hght = np.nanmin(hght_2)
     max_hght = np.nanmax(hght_2)
-    if min_hght/dz < 10:
-        min_hght = 10*dz
-        # d+=1
 
     for j in np.arange(nx):
         if clb_idx[j] > 0:
@@ -151,32 +148,39 @@ def Adia_fraction(i):
 
   ######Biny
     AF = AF_min * cloudy_mask_used
-    AF[AF==0]=np.nan
+    #AF[AF==0]=np.nan
+    print(np.count_nonzero(AF) )
 
     for k in np.arange(nz):
-        Biny[k] = np.digitize(AF[:,k],bin)
-        Biny[k] = np.bincount(Biny[k])
-        Biny[k] = np.pad(Biny[k], (0, (len(bin)+1)-len(Biny[k])), mode='constant')
-        Biny[k] = np.where(Biny[k] != 0, Biny[k], np.nan)
-        Biny_x[k] = np.log10(Biny[k]/bin_size)
-
+        #Biny[k] = np.digitize(AF[:,k],bin)
+        #Biny[k] = np.bincount(Biny[k])
+        #Biny[k] = np.pad(Biny[k], (0, (len(bin)+1)-len(Biny[k])), mode='constant')
+        #Biny[k] = np.where(Biny[k] != 0, Biny[k], np.nan)
+        #Biny_x[k] = np.log10(Biny[k]/bin_size)
+        Biny_x[k], bin = np.histogram(AF[:,k], bins=nx, range =[0, 1.4])
+        print(np.count_nonzero(AF[:,k]), np.count_nonzero(Biny_x[k]))
+    #print(Biny_x)
+    print(np.count_nonzero(Biny_x)-nz)
     AF_min[AF_min==0] = np.nan
     AF_min[cloudy_mask_used==0] = np.nan
     AF_mean_min = np.nanmean(AF_min, axis=0)
-    bins = np.array(Biny_x)
-    bins = bins[:,:-1]
-
-    return bins, AF_mean_min, hght, bin
-
+    bins = np.array(np.log10(Biny_x/(bin[2]-bin[1])))
+    #bins = bins[:,:-1]
+    #print(bins)
+    #return bins, AF_mean_min, hght, bin
+    #print(np.count_nonzero(AF_min) )
+    return bins, AF_mean_min, hght, bin[:-1]
 
 # plt.show()
 
 punkty = np.intc(np.linspace(1,91,91))
 # with concurrent.futures.ProcessPoolExecutor() as executor:
     # results = executor.map(Adia_fraction, punkty)
-# Adia_fraction(50)
+Adia_fraction(80)
 
+#print(Adia_fraction(80))
 
+'''
 # +1 zeby doliczyc
 bin_data = [0 for i in range(91-1)]
 BIN =[]
@@ -192,10 +196,10 @@ for i in range(1,91):
            borderpad=0,
            )
     bins, AF_mean_min, hght, bin = Adia_fraction(i)
-    bin_data[b] = bins
-    BIN = np.nanmean(bin_data[:b+1], axis=0)
-    BIN = np.array(BIN)
-    e = ax.contourf( bin, hght, BIN, 200, cmap='gnuplot') #bin[1:]
+    #bin_data[b] = bins
+    #BIN = np.nanmean(bin_data[:b+1], axis=0)
+    #BIN = np.array(BIN)
+    e = ax.contourf( bin, hght, bins, 200, cmap='gnuplot') #bin[1:]
     cbar = plt.colorbar(e, cax=axins,  orientation='horizontal', label=r"$log_{10}$($\frac{m^{3}}{\frac{unit AF}{m}}$)", format='%.2f')
     ax.set_ylabel('Height [m]')
     ax.set_xlabel('AF []')
@@ -206,8 +210,13 @@ for i in range(1,91):
     ax2.set_yticks([], [])
     ax2.set_yticks([], minor=True)
     plt.title('time = '+str(i*240)+ 's')
+<<<<<<< HEAD
     plt.savefig(outfile + '/AF_average/AF_cumulu_SD100_VF_' + str(240*i).zfill(10) +'.png')
+=======
+    plt.savefig(outfile + 'Cumulative_AF_'+lab+'_' + str(240*i).zfill(10) +'.png')
+>>>>>>> 41e1ba007f2b6dcf8996d7596bf7589e50f97c8c
     b += 1
 
 finish = time.perf_counter()
 print(f'Finished in {round(finish-start,2)} seconds(s)')
+'''

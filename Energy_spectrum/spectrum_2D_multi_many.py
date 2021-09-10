@@ -3,6 +3,8 @@
 import h5py
 import numpy as np
 from sys import argv
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 '''
@@ -26,7 +28,6 @@ outfile = argv[6]
 directories = argv[7:len(argv):2]
 labels = argv[8:len(argv):2]
 
-
 def Energy(directories, labels, velocities):
     # read in nx, ny, nz
     for directory, lab in zip(directories, labels):
@@ -36,6 +37,7 @@ def Energy(directories, labels, velocities):
         for path in path_file:
             path_to_file = os.listdir(directory+path)
             joined = os.path.join(directory,path)
+            #print(joined.split("/", -1)[-1])
 
             Exy_avg_many = [0 for i in range(len(path_to_file))]
             Exy_avg = [0 for i in range(len(velocities))]
@@ -78,6 +80,7 @@ def Energy(directories, labels, velocities):
             Exy_mean[path] /= to_lvl+1 - from_lvl
             plt.loglog(lmbd, Exy_mean[path] , linewidth=2, label=velocities+'_'+lab+"_"+path)
 '''
+>>>>>>> 9ceb2c4e37b01d11666e449561e48044c01296e6
     plt.loglog(lmbd, 2e-1* K**(-5./3.), label="-5/3" )
     plt.xlim(2*10**4,10**2)
     plt.xlabel("l[m]")
@@ -85,6 +88,12 @@ def Energy(directories, labels, velocities):
     plt.legend()
     plt.grid(True, which='both', linestyle='--')
         # plt.title("Mean PSD of w 322m<z<642m @3h")
+<<<<<<< HEAD
+    #print(outfile + 'Energy_spc.png')
+    plt.savefig(outfile + 'Energy_spc_vel_u.png')
+
+Energy(directories, labels)
+=======
     plt.savefig(outfile + 'Energy_spc.png')
     plt.show()
 '''
