@@ -1,6 +1,8 @@
 import h5py
 import numpy as np
 from sys import argv
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from collections import OrderedDict
 import os
@@ -29,9 +31,10 @@ outfreq = int(argv[3])
 #from_lvl = int(argv[4])
 #to_lvl = int(argv[5])
 
-directories = argv[4:len(argv):2]
-labels = argv[5:len(argv):2]
-outfile = argv[6]
+outfile = argv[4]
+directories = argv[5:len(argv):2]
+labels = argv[6:len(argv):2]
+#outfile = argv[6]
 print(directories, labels)
 
 levels = ["ground", "cloud_base"]
@@ -52,14 +55,14 @@ def Rain_distribution(directories, labels, lvl):
 
         file = '#'+(path.split("_piggy_",-3))[-1].split("_out")[0]
         tot_cloud_base_lvl[file] = np.zeros(0)
-        w3d = h5py.File(joined+"/timestep" + str(time_start).zfill(10) + ".h5", "r")["u"][:,:]
+        w3d = h5py.File(joined+'/'+joined.split("/",-1)[-1] +"_out_lgrngn"+"/timestep" + str(time_start).zfill(10) + ".h5", "r")["u"][:,:]
         nx, nz = w3d.shape
 
         for data in rain_data:
           total_arr[data][file] = np.zeros(0)
 
           for t in range(time_start, time_end+1, outfreq):
-            filename = joined + "/timestep" + str(t).zfill(10) + ".h5"
+            filename = joined +'/'+joined.split("/",-1)[-1] +"_out_lgrngn"+ "/timestep" + str(t).zfill(10) + ".h5"
                 # find cloud base
                 # based on cloud rw
             w3d = h5py.File(filename, "r")["cloud_rw_mom3"][:,:] * 4. / 3. * 3.1416 * 1e3

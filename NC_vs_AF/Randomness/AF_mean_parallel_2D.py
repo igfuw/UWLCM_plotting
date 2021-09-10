@@ -68,14 +68,14 @@ def Adia_fraction(i):
     rv = [0 for i in range(len(const))]
 
     for p in range(len(const)):
-        rhod[p] = h5py.File(paths + const[p]+"/const.h5", "r")["G"][:,:]
-        p_e[p] = h5py.File(paths + const[p]+"/const.h5", "r")["p_e"][:]
-        dz[p] = h5py.File(paths + const[p]+"/const.h5", "r").attrs["dz"]
-        rl[p] = (h5py.File(paths + const[p] + "/timestep" + str(240*i).zfill(10) + ".h5", "r")["actrw_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
-        rl_base[p] = (h5py.File(paths + const[p] + "/timestep" + str(240*i).zfill(10) + ".h5", "r")["cloud_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
-        nc[p] = h5py.File(paths + const[p] + "/timestep" + str(240*i).zfill(10) + ".h5", "r")["cloud_rw_mom0"][:,:]
-        th[p] = h5py.File(paths + const[p] + "/timestep" + str(240*i).zfill(10) + ".h5", "r")["th"][:,:];
-        rv[p] = h5py.File(paths + const[p] + "/timestep" + str(240*i).zfill(10) + ".h5", "r")["rv"][:,:];
+        rhod[p] = h5py.File(paths + const[p]+'/'+const[p]+'_out_lgrngn'+"/const.h5", "r")["G"][:,:]
+        p_e[p] = h5py.File(paths + const[p]+'/'+const[p]+'_out_lgrngn'+"/const.h5", "r")["p_e"][:]
+        dz[p] = h5py.File(paths + const[p]+'/'+const[p]+'_out_lgrngn'+"/const.h5", "r").attrs["dz"]
+        rl[p] = (h5py.File(paths + const[p] + '/'+const[p]+'_out_lgrngn'+"/timestep" + str(240*i).zfill(10) + ".h5", "r")["actrw_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
+        rl_base[p] = (h5py.File(paths + const[p] + '/'+const[p]+'_out_lgrngn'+"/timestep" + str(240*i).zfill(10) + ".h5", "r")["cloud_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
+        nc[p] = h5py.File(paths + const[p] + '/'+const[p]+'_out_lgrngn'+"/timestep" + str(240*i).zfill(10) + ".h5", "r")["cloud_rw_mom0"][:,:]
+        th[p] = h5py.File(paths + const[p] + '/'+const[p]+'_out_lgrngn'+"/timestep" + str(240*i).zfill(10) + ".h5", "r")["th"][:,:];
+        rv[p] = h5py.File(paths + const[p] + '/'+const[p]+'_out_lgrngn'+"/timestep" + str(240*i).zfill(10) + ".h5", "r")["rv"][:,:];
     rhod = np.mean(rhod,axis=0)
     p_e = np.mean(p_e,axis=0)
     dz = np.mean(dz,axis=0)
@@ -197,6 +197,6 @@ with concurrent.futures.ProcessPoolExecutor() as executor:
     results = executor.map(Adia_fraction, punkty)
 
 # for i in range(1,91):
-# Adia_fraction(89)
+#Adia_fraction(89)
 finish = time.perf_counter()
 print(f'Finished in {round(finish-start,2)} seconds(s)')

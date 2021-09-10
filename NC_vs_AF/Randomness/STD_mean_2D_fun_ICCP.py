@@ -1,13 +1,12 @@
 from math import exp, log, sqrt, pi, erf, cos, pow, asin, atan, acos, factorial
 import numpy as np
-import pandas as pd
 from scipy.stats import moment
 from sys import argv
-from matplotlib.ticker import MultipleLocator
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import matplotlib.colors as mcolors
-from matplotlib.ticker import FormatStrFormatter, LogFormatter, LogLocator, LogFormatterSciNotation, AutoMinorLocator
+#from matplotlib.ticker import MultipleLocator
+import matplotlib as plt
+#import matplotlib as mpl
+#import matplotlib.colors as mcolors
+#from matplotlib.ticker import FormatStrFormatter, LogFormatter, LogLocator, LogFormatterSciNotation, AutoMinorLocator
 import glob, os
 plt.rcParams.update({'font.size': 20})
 
@@ -20,16 +19,17 @@ path_diff_NA1_piggy_VF = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff
 path_diff_NA1_piggy_VF_tail = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff_piggy_VF_tail/'
 path_diff_NA1_piggy_VF_multi = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff_piggy_VF_tail/'
 
-outfile = ''
+outfile = '/home/pzmij/2D/RESULTS_NA1/Wyniki/'
 #OPISY
 text_diff_piggy_VF = 'same velo field in all simulations'
 text_diff_piggy_VF_tail = 'same velo field in all simulations \n sd conc long tail'
 text_diff_piggy_VF_multi = 'same velo field in all simulations \n sd conc same multiplicity'
 
-paths = [path_diff_NA1_piggy_VF+'SD100',path_diff_NA1_piggy_VF+'SD1000', path_diff_NA1_piggy_VF+'SD10000',path_diff_NA1_piggy_VF_tail+'SD100',path_diff_NA1_piggy_VF_tail+'SD1000', path_diff_NA1_piggy_VF+'SD10000']
+#paths = [path_diff_NA1_piggy_VF+'SD100',path_diff_NA1_piggy_VF+'SD1000', path_diff_NA1_piggy_VF+'SD10000',path_diff_NA1_piggy_VF_tail+'SD100',path_diff_NA1_piggy_VF_tail+'SD1000', path_diff_NA1_piggy_VF+'SD10000']
 
+paths = ['/home/pzmij/2D/RESULTS_NA1/SD100_piggy/times_SD100_diff_piggy_VF/', '/home/pzmij/2D/RESULTS_NA1/SD100_piggy/times_SD100_diff_piggy_VF_tail', '/home/pzmij/2D/RESULTS_NA1/SD100_piggy/times_SD100_diff_piggy_VF_multi', '/home/pzmij/2D/RESULTS_NA1/SD1000_piggy/times_SD1000_diff_piggy_VF', '/home/pzmij/2D/RESULTS_NA1/SD1000_piggy/times_SD1000_diff_piggy_VF_tail', '/home/pzmij/2D/RESULTS_NA1/SD1000_piggy/times_SD1000_diff_piggy_VF_multi', '/home/pzmij/2D/RESULTS_NA1/SD10000_piggy/times_SD10000_diff_piggy', '/home/pzmij/2D/RESULTS_NA1/SD10000_piggy/times_SD10000_diff_piggy_VF_tail', '/home/pzmij/2D/RESULTS_NA1/SD10000_piggy/times_SD10000_diff_piggy_VF_multi']
 label_list = ['100', '1000', '10000']
-podpisy = [text_diff_piggy_VF, text_diff_piggy_VF_tail]#, text_diff_piggy_VF_multi]
+podpisy = [text_diff_piggy_VF, text_diff_piggy_VF_tail, text_diff_piggy_VF_multi]
 width_multiplier = 0.67
 ##########################################################################
 def Rysuj_to(sciezki, etykiety, podpisy, name):
@@ -112,7 +112,7 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
         plt.ylabel(r"$\frac{\sigma(acc \hspace{0.5} precip)}{mean(acc \hspace{0.5} precip)}$ [%]")
         plt.xticks(X, labels, ha = 'center')
         plt.ylim(0, 2.5e2)
-        plt.text(0.5, 265  , 'G', fontsize=26)
+        #plt.text(0.5, 265  , 'G', fontsize=26)
         plt.title("Standard deviation of accumulated precipitation to \n mean of accumulated precipitation in a cumulus congestus simulation",weight='bold')
         plt.legend(title="number of super-droplets per cell: ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
 
@@ -131,7 +131,7 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
         A  = plt.bar(X[p] + u[p]*width/multi, STD[-1],  color=colors[p],width =width*width_multiplier,  yerr=error[-1], label=(label[p]) if (p < multi) else "")
         plt.ylabel(r"$\sigma$ [$m^3$]")
         plt.ylim(0, 5e-1)
-        plt.text(0.5, 0.53  , 'F', fontsize=26)
+        #plt.text(0.5, 0.53  , 'F', fontsize=26)
         plt.xticks(X, labels, ha = 'center')
         plt.title("        Standard deviation of accumulated precipitation \n in a cumulus congestus simulation", weight='bold')
         plt.legend(title="number of super-droplets per cell: ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
@@ -153,7 +153,7 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
         A  = plt.bar(X[p] + u[p]*width/multi, srednia[-1],  color=colors[p],width =width*width_multiplier,  yerr=STD_error_mean[-1], label=(label[p]) if (p < multi) else "")
         plt.ylabel(r"Mean accumulated precipitation [$m^3$]")
         plt.ylim(0, 4e-1)
-        plt.text(0.5, 0.43  , 'E', fontsize=26)
+        #plt.text(0.5, 0.43  , 'E', fontsize=26)
         plt.xticks(X, labels, ha = 'center')
         plt.title("        Mean of accumulated precipitation in a cumulus congestus simulation", weight='bold')
         plt.legend(title="number of super-droplets per cell: ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)

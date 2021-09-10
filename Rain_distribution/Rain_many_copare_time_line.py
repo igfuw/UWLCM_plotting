@@ -4,8 +4,8 @@
 from sys import argv, path, maxsize
 #path.insert(0,"../../local_folder/uptodate/lib/python3/dist-packages")
 # path.insert(0,"/home/piotr/Piotr/IGF/local_install/parcel/lib/python3/dist-packages")
-path.insert(0,"/home/piotr-pc/Piotr/IGF/local_install/parcel/lib/python3/dist-packages")
-# path.insert(0,"/home/pzmij/biblioteki/local_folder/16_03/lib/python3/dist-packages")
+#path.insert(0,"/home/piotr-pc/Piotr/IGF/local_install/parcel/lib/python3/dist-packages")
+path.insert(0,"/home/pzmij/biblioteki/local_folder/16_03/lib/python3/dist-packages")
 
 
 '''
@@ -69,7 +69,7 @@ def Adia_fraction(timestep, paths):
         sum_rr[file] = np.zeros([nx])
 
         filename = paths + files[file] + '/' + files[file] + "_out_lgrngn"+ "/timestep" + str(int(timestep)*240).zfill(10) + ".h5"
-        rl[file] = (h5py.File(filename, "r")["actrw_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
+        rl[file] = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
         rl_base[file] = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
         nc[file] = h5py.File(filename, "r")["cloud_rw_mom0"][:,:] * rhod[file] / 1e6; # 1 / cm^3
         rr[file] = (h5py.File(filename, "r")["rain_rw_mom3"][:,:]) * rhod[file] * 4. / 3. * 3.1416 * 1e6; # g/kg
@@ -165,7 +165,7 @@ ax0.legend(title='Average')
 ax1.legend(title='STD')
 fig.suptitle('time range = '+str(time_start) + ' to '+str(time_end) +' s')
 
-plt.savefig(outfile + 'Average_test2_many_for_time range_'+str(time_start)+'_to_'+ str(time_end)+'.png')
+plt.savefig(outfile + 'Average_many_for_time range_'+str(time_start)+'_to_'+ str(time_end)+'.png')
 # Od komentuj!
 plt.clf()
 
