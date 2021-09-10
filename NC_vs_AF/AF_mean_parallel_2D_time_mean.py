@@ -4,8 +4,8 @@
 from sys import argv, path, maxsize
 #path.insert(0,"../../local_folder/uptodate/lib/python3/dist-packages")
 # path.insert(0,"/home/piotr/Piotr/IGF/local_install/parcel/lib/python3/dist-packages")
-# path.insert(0,"/home/pzmij/biblioteki/local_folder/16_03/lib/python3/dist-packages")
-path.insert(0,"/home/piotr-pc/Piotr/IGF/local_install/parcel/lib/python3/dist-packages")
+path.insert(0,"/home/pzmij/biblioteki/local_folder/16_03/lib/python3/dist-packages")
+#path.insert(0,"/home/piotr-pc/Piotr/IGF/local_install/parcel/lib/python3/dist-packages")
 
 
 '''
@@ -206,7 +206,7 @@ for i in range(1,91):
     ax2.set_yticks([], [])
     ax2.set_yticks([], minor=True)
     plt.title('time = '+str(i*240)+ 's')
-    plt.savefig(outfile + '/AF_average/Cumulative_AF_' + str(240*i).zfill(10) +'.png')
+    plt.savefig(outfile + '/AF_average/AF_cumulu_SD100_VF_' + str(240*i).zfill(10) +'.png')
     b += 1
 
 finish = time.perf_counter()
