@@ -91,9 +91,10 @@ for timestep in timesteps:
     Rr_rows_clb = np.transpose(rr_rows_clb)
     Rr_rows_lvl0 = np.transpose(rr_rows_lvl0)
 
+
   fig, (ax0, ax1) = plt.subplots(1, 2,figsize=(30,15))
+  # e = plt.pcolormesh(X, pliki, Rr_rows, vmin=7e-15, vmax=4e-4) gnuplot
   e0 = ax0.contourf(X, pliki, Rr_rows_clb, vmin=7e-15, vmax=4e-4, extend='neither',levels=[7e-15, 7e-14, 7e-13, 7e-12, 7e-11, 7e-10, 7e-9, 7e-8, 7e-7, 7e-6, 7e-5, 7e-4], cmap='gnuplot')#, vmin=0, vmax=1.4, levels=[7e-15, 7e-14, 7e-13, 7e-12, 7e-11, 7e-10, 7e-9, 7e-8, 7e-7, 7e-6, 7e-5, 7e-4]) #bin[1:]
-  # e = plt.pcolormesh(X, pliki, Rr_rows, vmin=7e-15, vmax=4e-4)
   # fig.colorbar(e0,  orientation='vertical', ax=ax0, label=r"$r_{v}$", ticks=[7e-15, 7e-14, 7e-13, 7e-12, 7e-11, 7e-10, 7e-9, 7e-8, 7e-7, 7e-6, 7e-5, 7e-4])
   #opcjonalnie levele~!!!!!
   ax0.set_ylabel('Simulation#')
@@ -102,12 +103,13 @@ for timestep in timesteps:
   e1 = ax1.contourf(X, pliki, Rr_rows_lvl0, vmin=7e-15, vmax=4e-4, extend='neither',levels=[7e-15, 7e-14, 7e-13, 7e-12, 7e-11, 7e-10, 7e-9, 7e-8, 7e-7, 7e-6, 7e-5, 7e-4], cmap='gnuplot')#, vmin=0, vmax=1.4, levels=[7e-15, 7e-14, 7e-13, 7e-12, 7e-11, 7e-10, 7e-9, 7e-8, 7e-7, 7e-6, 7e-5, 7e-4]) #bin[1:]
   # e = plt.pcolormesh(X, pliki, Rr_rows, vmin=7e-15, vmax=4e-4)
   fig.subplots_adjust(right=0.99)
-  fig.colorbar(e1,  orientation='vertical', ax=[ax0,ax1],  label=r"$r_{v}$", ticks=[7e-15, 7e-14, 7e-13, 7e-12, 7e-11, 7e-10, 7e-9, 7e-8, 7e-7, 7e-6, 7e-5, 7e-4])
+  fig.colorbar(e1,  orientation='vertical', ax=[ax0,ax1],  label=r"$r_{r}$", ticks=[7e-15, 7e-14, 7e-13, 7e-12, 7e-11, 7e-10, 7e-9, 7e-8, 7e-7, 7e-6, 7e-5, 7e-4])
   #opcjonalnie levele~!!!!!
   # fig.supylabel('Simulation#')
   ax1.set_xlabel('cell#')
   ax1.set_title('Height = {}m'.format(int(0)))
   fig.suptitle('Current time {}s '.format(int(timestep/2)))
   plt.axis(aspect='image')
+  # plt.legend(title =("Max ", np.max(Rr_rows_clb), "Min ", np.min(Rr_rows_clb)))
   plt.savefig(outfile + '/Multi_SD100_' + str(int(timestep/2)) +'.png')
   plt.close()

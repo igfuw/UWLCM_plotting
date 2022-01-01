@@ -1,58 +1,60 @@
 from math import exp, log, sqrt, pi, erf, cos, pow, asin, atan, acos, factorial
 import numpy as np
-import pandas as pd
 from scipy.stats import moment
 from sys import argv
-from matplotlib.ticker import MultipleLocator
+#from matplotlib.ticker import MultipleLocator
+import matplotlib as plt
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-import matplotlib.colors as mcolors
-from matplotlib.ticker import FormatStrFormatter, LogFormatter, LogLocator, LogFormatterSciNotation, AutoMinorLocator
+#import matplotlib as mpl
+#import matplotlib.colors as mcolors
+#from matplotlib.ticker import FormatStrFormatter, LogFormatter, LogLocator, LogFormatterSciNotation, AutoMinorLocator
 import glob, os
-plt.rcParams.update({'font.size': 20})
+plt.rcParams.update({'font.size': 19})
 
 ############################################################################
 ####  DO RECZNEGO UZUPELNIENIA#############
-name = '2D_NA1'
+
 #PATHS
-path_same_NA1 = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_same/'
-path_diff_NA1 = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff/'
-path_diff_NA1_piggy_ICCP = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/ICCP/times_SD100_diff_piggy/'
-path_same_NA1_piggy = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_same_piggy/'
-path_diff_NA1_piggy = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff_piggy/'
-path_diff_NA1_piggy_VF = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff_piggy_VF/'
-path_diff_NA1_piggy_VF_tail = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff_piggy_VF_tail/'
-path_diff_NA1_piggy_VF_multi = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff_piggy_VF_multi/'
-path_testy = '/home/piotr-pc/Piotr/WORKSHOPS/Dane_do_AF_2D/Dane/'
+
+# path_diff_NA1_piggy_VF = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff_piggy_VF/'
+# path_diff_NA1_piggy_VF_tail = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff_piggy_VF_tail/'
+# path_diff_NA1_piggy_VF_multi = '/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/time_series_diff_piggy_VF_tail/'
+
 
 #OPISY
-text_same = 'Same rng_seed_init same rng_seed \n with dynamic'
-text_diff = 'diff velo field in all simulations'
-text_diff_piggy = 'same velo field for each SD value'
-text_diff_piggy_VF = 'same velo field in all simulations'
-text_diff_piggy_VF_tail = 'same velo field in all simulations \n sd conc long tail'
-text_diff_piggy_VF_multi = 'same velo field in all simulations \n sd conc same multiplicity'
 
-# paths = [path_diff_NA1+'SD100', path_diff_NA1+'SD1000',path_diff_NA1+'SD10000',path_diff_NA1_piggy+'SD100',path_diff_NA1_piggy+'SD1000', path_diff_NA1_piggy+'SD10000',path_diff_NA1_piggy_VF+'SD100',path_diff_NA1_piggy_VF+'SD1000', path_diff_NA1_piggy_VF+'SD10000']#,path_diff+'SD100', path_diff+'SD1000', path_diff+'SD10000']
-# paths = [path_diff_NA1+'SD100', path_diff_NA1+'SD1000',path_diff_NA1+'SD10000',path_diff_NA1_piggy_VF+'SD100',path_diff_NA1_piggy_VF+'SD1000', path_diff_NA1_piggy_VF+'SD10000']
-paths = [path_diff_NA1_piggy_VF+'SD10',path_diff_NA1_piggy_VF+'SD100',path_diff_NA1_piggy_VF+'SD1000', path_diff_NA1_piggy_VF+'SD10000', \
-        path_diff_NA1_piggy_VF_tail+'SD10',path_diff_NA1_piggy_VF_tail+'SD100',path_diff_NA1_piggy_VF_tail+'SD1000', path_diff_NA1_piggy_VF_tail+'SD10000']#, \
-        # path_diff_NA1_piggy_VF_multi+'SD10',path_diff_NA1_piggy_VF_multi+'SD100',path_diff_NA1_piggy_VF_multi+'SD1000_2']#,path_diff_NA1_piggy_VF_multi+'SD1000_2']
-# paths = [path_diff_NA1_piggy_VF+'SD10',path_diff_NA1_piggy_VF+'SD100',path_diff_NA1_piggy_VF+'SD1000',  \
-#         path_diff_NA1_piggy_VF_tail+'SD10',path_diff_NA1_piggy_VF_tail+'SD100',path_diff_NA1_piggy_VF_tail+'SD1000',  \
-#         path_diff_NA1_piggy_VF_multi+'SD10',path_diff_NA1_piggy_VF_multi+'SD100',path_diff_NA1_piggy_VF_multi+'SD1000_2']
-# paths = [path_diff_NA1_piggy_VF_multi+'SD10',path_diff_NA1_piggy_VF_multi+'SD100',path_diff_NA1_piggy_VF_multi+'SD1000',path_diff_NA1_piggy_VF_multi+'SD10_2',path_diff_NA1_piggy_VF_multi+'SD100_3',path_diff_NA1_piggy_VF_multi+'SD1000_2']#,path_diff_NA1_piggy_VF_multi+'SD100_2',path_diff_NA1_piggy_VF_multi+'SD100_1']
-# paths = [path_testy+'SD100/VF',path_testy+'SD1000/VF', path_testy+'SD10000/VF',path_testy+'SD100/tail',path_testy+'SD1000/tail', path_testy+'SD10000/tail',path_testy+'SD100/multi',path_testy+'SD1000/multi', path_testy+'SD10000/multi']
 
-label_list = ['10','100', '1000', '10000']
-podpisy = [text_diff_piggy_VF, text_diff_piggy_VF_tail]#, text_diff_piggy_VF_multi]
-# podpisy = ['1st ', '2nd']
-# podpisy = [text_diff,text_diff_piggy,text_diff_piggy_VF]
+####CASE Piggy
+paths = ['/home/pzmij/2D/PAPER/Piggy/SD10/times_classic','/home/pzmij/2D/PAPER/Piggy/SD50/times_classic','/home/pzmij/2D/PAPER/Piggy/SD100/times_classic','/home/pzmij/2D/PAPER/Piggy/SD1000/times_classic','/home/pzmij/2D/PAPER/Piggy/SD10000/times_classic']
+         #'/home/pzmij/2D/PAPER/Piggy/SD10/times_tail','/home/pzmij/2D/PAPER/Piggy/SD50/times_tail','/home/pzmij/2D/PAPER/Piggy/SD100/times_tail','/home/pzmij/2D/PAPER/Piggy/SD1000/times_tail',
+         #'/home/pzmij/2D/PAPER/Piggy/SD10/times_multi','/home/pzmij/2D/PAPER/Piggy/SD50/times_multi','/home/pzmij/2D/PAPER/Piggy/SD100/times_multi','/home/pzmij/2D/PAPER/Piggy/SD1000/times_multi']
+# paths = ['/home/pzmij/2D/PAPER/Piggy/SD10/only_ten_classic','/home/pzmij/2D/PAPER/Piggy/SD100/only_ten_classic','/home/pzmij/2D/PAPER/Piggy/SD1000/only_ten_classic','/home/pzmij/2D/PAPER/Piggy/SD10/only_ten_tail','/home/pzmij/2D/PAPER/Piggy/SD100/only_ten_tail','/home/pzmij/2D/PAPER/Piggy/SD1000/only_ten_tail','/home/pzmij/2D/PAPER/Piggy/SD10/only_ten_multi','/home/pzmij/2D/PAPER/Piggy/SD100/only_ten_multi','/home/pzmij/2D/PAPER/Piggy/SD1000/only_ten_multi']
+outfile = '/home/pzmij/2D/PAPER/Wyniki/STD_barrs/Piggy/'
+text_diff_piggy_VF = 'Classic'
+text_diff_piggy_VF_tail = 'Tail'
+text_diff_piggy_VF_multi = 'Multi'
+####CASE NO_Piggy
+# paths = ['/home/pzmij/2D/PAPER/no_Piggy/SD10/times_classic','/home/pzmij/2D/PAPER/no_Piggy/SD100/times_classic','/home/pzmij/2D/PAPER/no_Piggy/SD1000/times_classic',
+#         '/home/pzmij/2D/PAPER/no_Piggy/SD10/times_tail','/home/pzmij/2D/PAPER/no_Piggy/SD100/times_tail','/home/pzmij/2D/PAPER/no_Piggy/SD1000/times_tail',
+#         '/home/pzmij/2D/PAPER/no_Piggy/SD10/times_multi','/home/pzmij/2D/PAPER/no_Piggy/SD100/times_multi','/home/pzmij/2D/PAPER/no_Piggy/SD1000/times_multi']
+# outfile = '/home/pzmij/2D/PAPER/Wyniki/STD_barrs/no_Piggy/'
+# text_diff_piggy_VF = 'diff velo field in all simulations'
+# text_diff_piggy_VF_tail = 'diff velo field in all simulations \n sd conc long tail'
+# text_diff_piggy_VF_multi = 'diff velo field in all simulations \n sd conc same multiplicity'
+
+# label_list = ['10', '50', '100', '1000', '10000']
+label_list = ['5', '25', '50', '100']
+paths = ['/home/pzmij/2D/PAPER/Piggy/SD10/times_classic','/home/pzmij/2D/PAPER/Piggy/times_coal/SD10_coal25','/home/pzmij/2D/PAPER/Piggy/times_coal/SD10_coal50','/home/pzmij/2D/PAPER/Piggy/times_coal/SD10_coal100']#,'/home/pzmij/2D/PAPER/Piggy/SD10000/times_classic']
+name = 'Coal_comparison'
+podpisy = [text_diff_piggy_VF]#, text_diff_piggy_VF_tail, text_diff_piggy_VF_multi]
 width_multiplier = 0.67
 ##########################################################################
 def Rysuj_to(sciezki, etykiety, podpisy, name):
 
-    label = etykiety[0:int(len(sciezki)/2)]*len(podpisy)
+    if len(podpisy) == 1 :
+        label = etykiety
+    else:
+        label = etykiety[0:int(len(sciezki)/2)]*len(podpisy)
     multi = len(podpisy)
     labels = []
     X = []
@@ -96,7 +98,7 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
         srednia[iter_value] = Zmienna.mean(0)
         STD[iter_value] = Zmienna.std(0)
         STD_error_mean[iter_value] = Zmienna.std(0)/sqrt(dl)
-        error[iter_value] = np.power(1/dl * (moment(Zmienna,4) - (dl-3)/(dl-1)*np.power(STD[iter_value],4)),1/2)/(2*STD[iter_value])
+        error[iter_value] = np.power(1/dl * (moment(Zmienna,4) - (dl-3)/(dl-1)*np.power(STD[iter_value],2)),1/2)/(2*np.sqrt(STD[iter_value]))
         #Error from this https://stats.stackexchange.com/questions/156518/what-is-the-standard-error-of-the-sample-standard-deviation
         return srednia[iter_value], STD[iter_value], error[iter_value], STD_error_mean[iter_value]
 
@@ -111,10 +113,10 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
         series_file[p] = [open(file_names, "r") for file_names in glob.glob("*.dat")]
         files[p] = glob.glob("*.dat")
 
-    colors = [ 'forestgreen', 'gold', 'forestgreen', 'blue',  'gold', 'forestgreen', 'gold', 'blue']
+    colors = [ 'forestgreen', 'gold', 'forestgreen', 'gold', 'forestgreen', 'gold']
     u_init = np.linspace(-int(len(label)/len(podpisy)), int(len(label)/len(podpisy)), int(len(label)/len(podpisy)))
     u = np.tile(u_init, len(podpisy))
-    width = 0.3
+    width = 0.25
     colors_list = [ 'thistle', 'orchid','red', 'grey', 'green', 'orange', 'blue', 'yellow']
     colors = colors_list[0:len(etykiety)] *len(podpisy)
     multi = len(etykiety)
@@ -125,63 +127,67 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
     for p in range( len(sciezki)):
         srednia = licz_srednia("acc_vol_precip", p, sciezki)[0]
         STD = licz_srednia("acc_vol_precip", p, sciezki)[1]
-        error = licz_srednia("acc_vol_precip", p, sciezki)[2]
         A  = plt.bar(X[p] + u[p]*width/multi, STD[-1]/srednia[-1]*100,  color=colors[p],width =width*width_multiplier,  label=(label[p]) if (p < multi) else "")
         plt.ylabel(r"$\frac{\sigma(acc \hspace{0.5} precip)}{mean(acc \hspace{0.5} precip)}$ [%]")
         plt.xticks(X, labels, ha = 'center')
-        # plt.ylim(0, 2.5e2)
-        # plt.text(0.5, 265  , 'G', fontsize=26)
+        plt.ylim(0, 10.5e2) #piggy/
+        # plt.ylim(0, 3.5e2) #no_piggy/
+        #plt.text(0.5, 265  , 'G', fontsize=26)
         plt.title("Standard deviation of accumulated precipitation to \n mean of accumulated precipitation in a cumulus congestus simulation",weight='bold')
-        plt.legend(title="number of super-droplets per cell: ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
+        # plt.legend(title="number of super-droplets per cell: ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
+        plt.legend(title="sstp_coal: ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
+
 
         for rect in A:
             height = rect.get_height()
             ax.text(rect.get_x() + rect.get_width()/2., 0.99*height,
                 '%d' % int(height) + "%", ha='center', va='bottom')
-    plt.savefig('/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/ICCP/Wyniki/Sigma_VF_tail'+name+'.png')
+    plt.savefig(outfile+'STD_to_mean_'+name+'.png')
 
-    fig1, ax = plt.subplots()
-    fig1.set_size_inches(18.5, 10.5)
+    fig2, ax2 = plt.subplots()
+    fig2.set_size_inches(18.5, 10.5)
     for p in range( len(sciezki)):
-        srednia = licz_srednia("acc_vol_precip", p, sciezki)[0]
         STD = licz_srednia("acc_vol_precip", p, sciezki)[1]
         error = licz_srednia("acc_vol_precip", p, sciezki)[2]
         A  = plt.bar(X[p] + u[p]*width/multi, STD[-1],  color=colors[p],width =width*width_multiplier,  yerr=error[-1], label=(label[p]) if (p < multi) else "")
         plt.ylabel(r"$\sigma$ [$m^3$]")
-        plt.ylim(0, 1.5e-1)
-        # plt.text(0.5, 0.53  , 'F', fontsize=26)
+        plt.ylim(0, 1.2e-1) #piggy
+        # plt.ylim(0, 8e-1) #no_piggy
+        #plt.text(0.5, 0.53  , 'F', fontsize=26)
         plt.xticks(X, labels, ha = 'center')
         plt.title("        Standard deviation of accumulated precipitation \n in a cumulus congestus simulation", weight='bold')
-        plt.legend(title="number of super-droplets per cell: ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
+        # plt.legend(title="number of super-droplets per cell: ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
+        plt.legend(title="sstp_coal ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
 
         for rect in A:
             height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width()/2., 0.99*height,
+            ax2.text(rect.get_x() + rect.get_width()/2., 0.99*height,
                 f"{height:.2e}", ha='center', va='bottom')
                 # f"{height:.2e}" + "$m^3$", ha='center', va='bottom')
-    plt.savefig('/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/ICCP/Wyniki/STD_VF_tail'+name+'.png')
+    plt.savefig(outfile+'STD_'+name+'.png')
 
-    fig1, ax = plt.subplots()
-    fig1.set_size_inches(18.5, 10.5)
+    fig3, ax3 = plt.subplots()
+    fig3.set_size_inches(18.5, 10.5)
     for p in range( len(sciezki)):
         srednia = licz_srednia("acc_vol_precip", p, sciezki)[0]
-        STD = licz_srednia("acc_vol_precip", p, sciezki)[1]
-        error = licz_srednia("acc_vol_precip", p, sciezki)[2]
         STD_error_mean = licz_srednia("acc_vol_precip", p, sciezki)[3]
         A  = plt.bar(X[p] + u[p]*width/multi, srednia[-1],  color=colors[p],width =width*width_multiplier,  yerr=STD_error_mean[-1], label=(label[p]) if (p < multi) else "")
         plt.ylabel(r"Mean accumulated precipitation [$m^3$]")
-        plt.ylim(0, 4e-1)
-        # plt.text(0.5, 0.43  , 'E', fontsize=26)
+        plt.ylim(0, 12e-2) #piggy
+        # plt.ylim(0, 65e-2) #no_piggy
+        #plt.text(0.5, 0.43  , 'E', fontsize=26)
         plt.xticks(X, labels, ha = 'center')
         plt.title("        Mean of accumulated precipitation in a cumulus congestus simulation", weight='bold')
-        plt.legend(title="number of super-droplets per cell: ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
+        # plt.legend(title="number of super-droplets per cell: ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
+        plt.legend(title="sstp_coal ", prop=dict(weight='bold') ,loc='upper left', framealpha = 0.5, frameon = 0, ncol = multi)
+
 
         for rect in A:
             height = rect.get_height()
-            ax.text(rect.get_x() + rect.get_width()/2., 0.99*height,
+            ax3.text(rect.get_x() + rect.get_width()/2., 0.99*height,
                 f"{height:.2e}", ha='center', va='bottom')
                 # f"{height:.2e}" + "$m^3$", ha='center', va='bottom')
-    plt.savefig('/home/piotr-pc/Piotr/WORKSHOPS/2D/NA1/ICCP/Wyniki/Mean_VF_tail'+name+'.png')
+    plt.savefig(outfile+'Mean_'+name+'.png')
 
 
 Rysuj_to(paths, label_list, podpisy, name)

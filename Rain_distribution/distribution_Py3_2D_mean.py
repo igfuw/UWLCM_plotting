@@ -104,7 +104,7 @@ def Rain_distribution(directories, labels, lvl):
   _ = plt.hist(A_mean, bins=np.logspace(np.log10(1e-6), np.log10(np.amax(A_mean)), nx),   label=plot_labels.values(), density=False, histtype='step', linewidth=6)
 
   plt.xscale('log')
-  # plt.legend(loc = 'lower center')
+  plt.legend(loc = 'lower center')
   plt.yscale('log')
   plt.xlabel('q_r [g/kg]')
   plt.ylabel('# of cells')
@@ -116,7 +116,7 @@ def Rain_distribution(directories, labels, lvl):
   _ = plt.hist(B_mean, bins=np.logspace(np.log10(1e-3), np.log10(np.amax(B_mean)), nx), label=plot_labels.values(), density=False, histtype='step', linewidth=6)
 
   plt.xscale('log')
-  # plt.legend(loc = 'lower center')
+  plt.legend(loc = 'lower center')
   plt.yscale('log')
   plt.xlabel('precipitation flux [W / m^2]')
   plt.ylabel('# of cells')
