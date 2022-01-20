@@ -33,8 +33,8 @@ for i in range(1, 91):
     timesteps[i] = i*240
 # timesteps = timesteps[1:91]
 timesteps = timesteps[1:91]
-paths = argv[1]
-outfile = argv[2]
+paths = '/home/pzmij/2D/PAPER/Piggy_2/SD10000/'
+outfile = '/home/pzmij/2D/PAPER/Wyniki/New_hist/Piggy/'
 
 file_names = os.listdir(paths)
 
@@ -59,6 +59,7 @@ for timestep in timesteps:
     X = np.arange(nx)# * dx
 
     filename = path + "/timestep" + str(int(timestep)).zfill(10) + ".h5"
+    print(filename)
     rl = (h5py.File(filename, "r")["actrw_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
     rr = (h5py.File(filename, "r")["rain_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg
     rr_c = (h5py.File(filename, "r")["cloud_rw_mom3"][:,:]) * 4. / 3. * 3.1416 * 1e3; # kg/kg

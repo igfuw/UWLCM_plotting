@@ -61,22 +61,22 @@ def Liczy_histogram(paths, i):
     # Hist_data = Hist_data/ np.max(Hist_data)
     return Hist, hist[1]
 
-def Run_hist(SD, path, kroki):
-    return Liczy_histogram(main_path+str(SD)+'/'+str(path)+'/', kroki)
+def Run_hist(SD,  kroki):
+    return Liczy_histogram(main_path+str(SD)+'/', kroki)
 # def Run_hist(SD, kroki):
     # return Liczy_histogram(main_path+str(SD)+'/', kroki)
 
 biny = [1e-14, 1e-13,1e-12,1e-11,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2, 1e-1, 1 ]
 outfile = '/home/pzmij/2D/PAPER/Wyniki/New_hist/Piggy/'
-main_path = '/home/pzmij/2D/PAPER/Piggy/SD'
+main_path = '/home/pzmij/2D/PAPER/Piggy_2/SD'
 TITLE = 'CLASSIC'
-TITLE_save = 'SD10-70k'
-partial_fun_1000_VF = functools.partial(Run_hist, '10', "classic")
-partial_fun_1000_tail = functools.partial(Run_hist, '50', "classic")
-partial_fun_1000_multi = functools.partial(Run_hist, '100', "classic")
-partial_fun_1000_multi2 = functools.partial(Run_hist, '1000', "classic")
-partial_fun_1000_multi3 = functools.partial(Run_hist, '10000', "classic")
-partial_fun_1000_multi4 = functools.partial(Run_hist, '70000', "classic")
+TITLE_save = 'SD10-70k_Piggy_2'
+partial_fun_1000_VF = functools.partial(Run_hist, '10' )
+partial_fun_1000_tail = functools.partial(Run_hist, '50')
+partial_fun_1000_multi = functools.partial(Run_hist, '100')
+partial_fun_1000_multi2 = functools.partial(Run_hist, '1000')
+partial_fun_1000_multi3 = functools.partial(Run_hist, '10000')
+partial_fun_1000_multi4 = functools.partial(Run_hist, '70000')
 # partial_fun_1000_multi_3 = functools.partial(Run_hist, 'SD10/classic', "multi")
 punkty = np.intc(np.linspace(1,90,91))
 with concurrent.futures.ProcessPoolExecutor() as executor:

@@ -89,8 +89,10 @@ time_start = int(argv[1])
 time_end = int(argv[2])
 outfreq = int(argv[3])
 outfile = argv[4]
-paths = argv[5:len(argv):2]
-labels = argv[6:len(argv):2]
+Plot_name = str(argv[5])
+legend_title = str(argv[6])
+paths = argv[7:len(argv):2]
+labels = argv[8:len(argv):2]
 
 Average = []
 STD = []
@@ -137,18 +139,18 @@ profiler.disable()
 stats = pstats.Stats(profiler).sort_stats('cumtime')
 stats.print_stats()
 ax0.set_ylim((0,0.5))
-ax1.set_ylim((0, 0.5 ))
-ax0.set_xlim((4000,8000))
-ax1.set_xlim((4000,8000))
+ax1.set_ylim((0, 0.6 ))
+ax0.set_xlim((3800,8000))
+ax1.set_xlim((3800,8000))
 ax0.set_xlabel('X [m]')
 ax1.set_xlabel('X [m]')
 ax0.set_ylabel('Mean of $q_r$  [g/kg]')
 ax1.set_ylabel('STD of $q_r$  [g/kg]')
-ax0.legend(title='SD10')
-ax1.legend(title='SD10')
+ax0.legend(title=legend_title)
+ax1.legend(title=legend_title)
 fig.suptitle('time range = '+str(time_start) + ' to '+str(time_end) +' s')
 
-plt.savefig(outfile + 'Average_many_for_time_range_'+str(time_start)+'_to_'+ str(time_end)+'21_12.png')
+plt.savefig(outfile + Plot_name +str(time_start)+'_to_'+ str(time_end)+'21_12.png')
 # Od komentuj!
 plt.clf()
 
