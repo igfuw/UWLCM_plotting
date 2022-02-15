@@ -794,7 +794,69 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           }
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
-      }   
+      }
+  //    else if (plt == "cwp")
+   //   {
+    //    // cloud water path
+     //   try
+ //       {
+//          {
+//            typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+//            snap *= rhod *1e3; // water per cubic metre (should be wet density ...) & g/kg
+//            res_prof(at) = blitz::mean(snap);
+//          }
+//        }
+//        catch(...) {;}
+//      }
+//      else if (plt == "lwm")
+//      {
+//        //liquid water mass
+//        try
+//        {
+//          { 
+ //           auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * rhod;
+//            typename Plotter_t::arr_t snap(tmp);
+//            snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * rhod;
+//            snap *= plotter.CellVol;
+//            snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
+//            snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
+//            res_prof(at) = blitz::sum( snap);
+ //         }
+ //       }
+ //       catch(...) {;}
+ //     }
+      //else if (plt == "cwm")
+      //{
+	//cloud water mass
+//	try
+//	{
+//	  { 
+ //           auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
+//            typename Plotter_t::arr_t snap(tmp);
+ //           snap *= rhod * plotter.CellVol;
+  //          snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
+   //         snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
+    //        res_prof(at) = blitz::sum(snap);
+     //     }
+//	}
+//	catch(...) {;}
+ //     }
+  //    else if (plt == "rwm")
+   //   {
+//	//liquid water mass
+//	try
+//	{
+//	  {
+//	    auto tmp = plotter.h5load_rr_timestep(at * n["outfreq"]);
+ //           typename Plotter_t::arr_t snap(tmp);
+  //          snap *= rhod * plotter.CellVol;
+   //         snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
+    //        snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
+     //       res_prof(at) = blitz::sum(snap);
+//	  }
+//	}
+//	catch(...) {;}
+ //     }
       else if (plt == "surf_flux_latent")
       {   
         try

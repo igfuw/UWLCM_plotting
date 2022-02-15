@@ -890,13 +890,13 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         res = res_tmp;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }
-      else if (plt == "S_drop") // supersat. weighted by nc
-      {
-	typename Plotter_t::arr_t nc(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-        nc *= rhod * plotter.dv;
-	typename Plotter_t::arr_t S(plotter.h5load_timestep("RH", at * n["outfreq"])-1);
-        res_prof_hlpr = plotter.horizontal_weighted_mean(S, nc);
-      }
+      //else if (plt == "S_drop") // supersat. weighted by nc
+      //{
+	//typename Plotter_t::arr_t nc(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+        //nc *= rhod * plotter.dv;
+	//typename Plotter_t::arr_t S(plotter.h5load_timestep("RH", at * n["outfreq"])-1);
+        //res_prof_hlpr = plotter.horizontal_weighted_mean(S, nc);
+      //}
       else if (plt == "Sigma2_S") // variance of supersaturation
       {
 	typename Plotter_t::arr_t S(plotter.h5load_timestep("RH", at * n["outfreq"])-1);
@@ -904,18 +904,18 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         res = S * S;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }
-      else if (plt == "Sigma2_S_drop") // variance of supersaturation weighted by nc
-      {
-	typename Plotter_t::arr_t nc(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-        nc *= rhod * plotter.dv;
-	typename Plotter_t::arr_t S(plotter.h5load_timestep("RH", at * n["outfreq"])-1);
-
-        if(blitz::sum(nc) > 0)
-        {
-          plotter.subtract_horizontal_weighted_mean(S, nc);
-          res = S * S;
-          res_prof_hlpr = plotter.horizontal_weighted_mean(res, nc);
-        }
+      //else if (plt == "Sigma2_S_drop") // variance of supersaturation weighted by nc
+     // {
+//	typename Plotter_t::arr_t nc(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+//        nc *= rhod * plotter.dv;
+//	typename Plotter_t::arr_t S(plotter.h5load_timestep("RH", at * n["outfreq"])-1);
+//
+  //      if(blitz::sum(nc) > 0)
+    //    {
+      //    plotter.subtract_horizontal_weighted_mean(S, nc);
+       //   res = S * S;
+       //   res_prof_hlpr = plotter.horizontal_weighted_mean(res, nc);
+       // }
         else
         {
           res_prof_hlpr = 0;
@@ -976,23 +976,23 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       res_pos_out_done = true;
     }
 
-    if (plt != "base_prflux_vs_clhght")
-      res_prof_sum /= last_timestep - first_timestep + 1;
-    else
-      res_prof_sum = where(occur_no > 0, res_prof_sum/occur_no, 0);
+    //if (plt != "base_prflux_vs_clhght")
+    //  res_prof_sum /= last_timestep - first_timestep + 1;
+    //else
+    //  res_prof_sum = where(occur_no > 0, res_prof_sum/occur_no, 0);
  
     // set labels for the gnuplot plot
-    gnuplot_profs_set_labels(gp, plt, normalize);
+   // gnuplot_profs_set_labels(gp, plt, normalize);
 
     // do the plotting
-    gp << "plot '-' with line\n";
-    gp.send1d(boost::make_tuple(res_prof_sum, res_pos));
+    //gp << "plot '-' with line\n";
+    //gp.send1d(boost::make_tuple(res_prof_sum, res_pos));
 
-    if (plt == "base_prflux_vs_clhght")
-    {
-      oprof_file << plt << " number of occurances" << endl;
-      oprof_file << occur_no;
-    }
+//    if (plt == "base_prflux_vs_clhght")
+//    {
+//      oprof_file << plt << " number of occurances" << endl;
+//      oprof_file << occur_no;
+ //   }
     oprof_file << plt << endl;
     oprof_file << res_prof_sum ;
 

@@ -7,6 +7,8 @@
 #include "cases/PiChamber/plots_icmw.hpp"
 #include "cases/Lasher_Trapp/plots.hpp"
 #include "cases/common_plots/GCCN_CCN_conc/plots.hpp"
+#include "cases/ICMW2020_cumulus_congestus/plots.hpp"
+
 
 const std::vector<std::string> series_sgs({
 // "tot_tke"
@@ -57,6 +59,11 @@ class Plots
      // profs.insert(profs.end(), profs_Lasher_Trapp.begin(), profs_Lasher_Trapp.end());
       series.insert(series.end(), series_Lasher_Trapp.begin(), series_Lasher_Trapp.end());
       fields.insert(fields.end(), fields_Lasher_Trapp.begin(), fields_Lasher_Trapp.end());
+    }
+    else if(type == "ICMW2020_cc") {
+      profs.insert(profs.end(), profs_ICMW2020.begin(), profs_ICMW2020.end());
+      series.insert(series.end(), series_ICMW2020.begin(), series_ICMW2020.end());
+      fields.insert(fields.end(), fields_ICMW2020.begin(), fields_ICMW2020.end());
     }
     else if(type == "pi_chamber_icmw") { 
       profs.insert(profs.end(), profs_PiChamberICMW.begin(), profs_PiChamberICMW.end());
