@@ -25,11 +25,11 @@ plt.rcParams.update({'font.size': 20})
 
 
 #########parametry do uruchomienia
-outfile = '/home/pzmij/2D/PAPER/Wyniki/Distribution/Piggy/classic/mask/cb/'
-name = 'Piggy_Average_classic_mask_cb_'
-path_to_file_1 = '/home/pzmij/2D/PAPER/Distribution/Piggy/SD100/classic/'
-path_to_file_2 = '/home/pzmij/2D/PAPER/Distribution/Piggy/SD1000/classic/'
-path_to_file_3 = '/home/pzmij/2D/PAPER/Distribution/Piggy/SD10000/classic/'
+outfile = '/home/pzmij/2D/PAPER/Wyniki/Distribution/no_Piggy/tail/mask/cb/'
+name = 'no_Piggy_Average_tail_mask_cb_'
+path_to_file_1 = '/home/pzmij/2D/PAPER/Distribution/no_Piggy/SD100/tail/'
+path_to_file_2 = '/home/pzmij/2D/PAPER/Distribution/no_Piggy/SD1000/tail/'
+path_to_file_3 = '/home/pzmij/2D/PAPER/Distribution/no_Piggy/SD10000/tail/dobre/'
 
 
 
@@ -76,9 +76,11 @@ def Distro(timestep, paths, pozycja):
         wynik_mass [file] = dystrybucja_mom3[file][:,int(min_hght/100)-1]* rainy_mask[:,int(min_hght/100)-1]
         wynik_number[file][wynik_number[file]==0]=np.nan
         wynik_mass[file][wynik_mass[file]==0]=np.nan
-    srednia_number = np.nanmean(wynik_number)
-    srednia_mass = np.nanmean(wynik_mass)
-    STD = np.nanstd(wynik_number)
+    W_n = np.array(wynik_number)
+    W_m = np.array(wynik_mass)
+    srednia_number = np.nanmean(W_n)
+    srednia_mass = np.nanmean(W_m)
+    STD = np.nanstd(W_n)
     return srednia_number, STD, srednia_mass
 
 def Positions(paths, timestep):
@@ -101,6 +103,9 @@ with concurrent.futures.ProcessPoolExecutor() as executor:
 Class_1 = [i for i in Classic_1]
 Class_2 = [i for i in Classic_2]
 Class_3 = [i for i in Classic_3]
+Class_1_array = np.array(Class_1)
+Class_2_array = np.array(Class_2)
+Class_3_array = np.array(Class_3)
 
 
 biny = [(1e-6*pow(10, -3+i*0.2)) for i in range(0,41)]
@@ -116,19 +121,20 @@ Srednie_mass3 = np.zeros((91, 39))
 odchylenie_num3 = np.zeros((91, 39))
 
 
-
 for i in range(91):
     
     for j in range(39):
-        Srednie_num1[i][j] = (((Class_1[i])[0])[j])[0]
-        odchylenie_num1[i][j] = (((Class_1[i])[0])[j])[1]
-        Srednie_mass1[i][j] = (((Class_1[i])[0])[j])[2]
-        Srednie_num2[i][j] = (((Class_2[i])[0])[j])[0]
-        odchylenie_num2[i][j] = (((Class_2[i])[0])[j])[1]
-        Srednie_mass2[i][j] = (((Class_2[i])[0])[j])[2]
-        Srednie_num3[i][j] = (((Class_3[i])[0])[j])[0]
-        odchylenie_num3[i][j] = (((Class_3[i])[0])[j])[1]
-        Srednie_mass3[i][j] = (((Class_3[i])[0])[j])[2]
+        Srednie_num1[i][j] = float(0) if np.all((((Class_1_array[i])[0])[j])[0]) == np.nan else np.mean((((Class_1_array[i])[0])[j])[0])
+        odchylenie_num1[i][j] = float(0) if np.all((((Class_1_array[i])[0])[j])[1]) == np.nan else np.mean((((Class_1_array[i])[0])[j])[1])
+        Srednie_mass1[i][j] = float(0) if np.all((((Class_1_array[i])[0])[j])[2]) == np.nan else np.mean((((Class_1_array[i])[0])[j])[2])
+        
+        Srednie_num2[i][j] = float(0) if np.all((((Class_2_array[i])[0])[j])[0]) == np.nan else np.mean((((Class_2_array[i])[0])[j])[0])
+        odchylenie_num2[i][j] = float(0) if np.all((((Class_2_array[i])[0])[j])[1]) == np.nan else np.mean((((Class_2_array[i])[0])[j])[1])
+        Srednie_mass2[i][j] = float(0) if np.all((((Class_2_array[i])[0])[j])[2]) == np.nan else np.mean((((Class_2_array[i])[0])[j])[2])
+        
+        Srednie_num3[i][j] = float(0) if np.all((((Class_3_array[i])[0])[j])[0]) == np.nan else np.mean((((Class_3_array[i])[0])[j])[0])
+        odchylenie_num3[i][j] = float(0) if np.all((((Class_3_array[i])[0])[j])[1]) == np.nan else np.mean((((Class_3_array[i])[0])[j])[1])
+        Srednie_mass3[i][j] = float(0) if np.all((((Class_3_array[i])[0])[j])[2]) == np.nan else np.mean((((Class_3_array[i])[0])[j])[2])
 
 Average_srednia_num1 = np.mean(Srednie_num1, axis=0)
 Average_odchylenie_num1 = np.mean(odchylenie_num1, axis=0)
@@ -147,7 +153,7 @@ ax0.step(biny[1:-1], Average_srednia_num2/biny_diff[0], c='k', linewidth=9, labe
 ax0.step(biny[1:-1], Average_srednia_num3/biny_diff[0], c='m', linewidth=9, label='SD10000')
 ax1.step(biny[2:], Average_srednia_mass1/biny_diff[0], c='g', linewidth=9, label='SD100')
 ax1.step(biny[2:], Average_srednia_mass2/biny_diff[0], c='k', linewidth=9, label='SD1000')
-ax1.step(biny[2:], Average_srednia_mass3[i]/biny_diff[0], c='m', linewidth=9, label='SD10000')
+ax1.step(biny[2:], Average_srednia_mass3/biny_diff[0], c='m', linewidth=9, label='SD10000')
 
 #lub opcja ze liczba na jednym a na drugim masa
 fig.suptitle('time= '+str(i*120)+'[s]')

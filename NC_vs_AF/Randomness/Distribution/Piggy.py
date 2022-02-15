@@ -31,19 +31,10 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
     else:
         label = etykiety[0:int(len(sciezki)/2)]*len(podpisy)
     multi = len(podpisy)
-    labels = []
-    X = []
-    for i in range(len(label)):
-        if i < len(label)/multi :
-            labels.append(podpisy[0])
-            X.append(1)
-        elif  i < len(label)/multi*2:
-            labels.append(podpisy[1])
-            X.append(2)
-        else:
-            labels.append(podpisy[2])
-            X.append(3)
-
+    Y = [i+1 for i in range(int(len(label)/len(podpisy)+1))]
+    X = np.repeat(Y, int(len(etykiety)))
+    labels = [podpisy[i] for i in range(int(len(label)/len(podpisy)+1)) ]
+    labels = np.repeat(labels, int(len(etykiety)))
     def read_my_array(file_obj):
         arr_name = file_obj.readline()
         file_obj.readline() # discarded line with size of the array

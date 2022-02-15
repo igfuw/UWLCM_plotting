@@ -15,13 +15,21 @@ plt.rcParams.update({'font.size': 15})
 ####  DO RECZNEGO UZUPELNIENIA#############
 
 label_list = ['100', '1000', '10000']
-paths = ['/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD100/times_classic/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD1000/times_classic/','/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD10000/times_classic/',
-        '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD100/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD1000/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD10000/times_tail/'] 
-name = 'Piggy_2_Distribution'
-text_diff_piggy = 'Classic'
-text_diff_piggy2 = 'Tail'
-podpisy = [text_diff_piggy, text_diff_piggy2]
-outfile = '/home/pzmij/2D/PAPER/Wyniki/Distribution/Piggy_2/barrs/'
+paths = ['/home/pzmij/2D/PAPER/Distribution/Piggy/SD100/times_classic/', '/home/pzmij/2D/PAPER/Distribution/Piggy/SD10000/times_classic/','/home/pzmij/2D/PAPER/Distribution/Piggy/SD1000/times_classic/',
+        '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD100/times_classic/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD10000/times_classic/','/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD1000/times_classic/',
+        '/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD100/times_classic/', '/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD10000/times_classic/','/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD1000/times_classic/',
+        '/home/pzmij/2D/PAPER/Distribution/Piggy/SD100/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy/SD10000/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy/SD1000/times_tail/',
+        '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD100/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD10000/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD1000/times_tail/',
+        '/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD100/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD10000/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD1000/times_tail/'] 
+name = 'TESTY'
+text_diff_piggy = 'Classic_M1'
+text_diff_piggy2 = 'Classic_M2'
+text_diff_piggy3 = 'Classic_M3'
+text_diff_piggy4 = 'Tail_M1'
+text_diff_piggy5 = 'Tail_M2'
+text_diff_piggy6 = 'Tail_M3'
+podpisy = [text_diff_piggy, text_diff_piggy2, text_diff_piggy3, text_diff_piggy4, text_diff_piggy5, text_diff_piggy6]
+outfile = '/home/pzmij/2D/PAPER/Wyniki/Distribution/barrs/'
 width_multiplier = 0.57
 ##########################################################################
 def Rysuj_to(sciezki, etykiety, podpisy, name):
@@ -31,10 +39,9 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
     else:
         label = etykiety[0:int(len(sciezki)/2)]*len(podpisy)
     multi = len(podpisy)
-    Y = [i+1 for i in range(int(len(label)/len(podpisy)+1))]
+    Y = [i+1 for i in range(multi)]
     X = np.repeat(Y, int(len(etykiety)))
-    labels = [podpisy[i] for i in range(int(len(label)/len(podpisy)+1)) ]
-    labels = np.repeat(labels, int(len(etykiety)))
+    labels = np.repeat(podpisy, int(len(etykiety)))
     def read_my_array(file_obj):
         arr_name = file_obj.readline()
         file_obj.readline() # discarded line with size of the array
@@ -54,6 +61,7 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
         return arr
     def licz_srednia(parameter_name, iter_value, sciezki):
         dl = len(series_file[iter_value])
+        print(dl)
         srednia =[0 for i in range(len(sciezki))]
         STD = [0 for i in range(len(sciezki))]
         error = [0 for i in range(len(sciezki))]
@@ -87,7 +95,7 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
     colors = colors_list[0:len(etykiety)] *len(podpisy)
     multi = len(etykiety)
 
-
+    print("X", X, "u", len(u), "col", len(colors))
     fig1, ax = plt.subplots()
     fig1.set_size_inches(18.5, 10.5)
     for p in range( len(sciezki)):
@@ -96,7 +104,7 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
         A  = plt.bar(X[p] + u[p]*width/multi, STD[-1]/srednia[-1]*100,  color=colors[p],width =width*width_multiplier,  label=(label[p]) if (p < multi) else "")
         plt.ylabel(r"$\frac{\sigma(acc \hspace{0.5} precip)}{mean(acc \hspace{0.5} precip)}$ [%]")
         plt.xticks(X, labels, ha = 'center')
-        plt.ylim(0, 10.5e2) #piggy/
+        plt.ylim(0, 6e2) #piggy/
         # plt.ylim(0, 3.5e2) #no_piggy/
         #plt.text(0.5, 265  , 'G', fontsize=26)
         plt.title("Standard deviation of accumulated precipitation to \n mean of accumulated precipitation in a cumulus congestus simulation",weight='bold')
@@ -117,7 +125,7 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
         error = licz_srednia("acc_vol_precip", p, sciezki)[2]
         A  = plt.bar(X[p] + u[p]*width/multi, STD[-1],  color=colors[p],width =width*width_multiplier,  yerr=error[-1], label=(label[p]) if (p < multi) else "")
         plt.ylabel(r"$\sigma$ [$m^3$]")
-        plt.ylim(0, 1.2e-1) #piggy
+        plt.ylim(0, 1.3e-1) #piggy
         # plt.ylim(0, 8e-1) #no_piggy
         #plt.text(0.5, 0.53  , 'F', fontsize=26)
         plt.xticks(X, labels, ha = 'center')
@@ -139,7 +147,7 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
         STD_error_mean = licz_srednia("acc_vol_precip", p, sciezki)[3]
         A  = plt.bar(X[p] + u[p]*width/multi, srednia[-1],  color=colors[p],width =width*width_multiplier,  yerr=STD_error_mean[-1], label=(label[p]) if (p < multi) else "")
         plt.ylabel(r"Mean accumulated precipitation [$m^3$]")
-        plt.ylim(0, 25e-2) #piggy
+        plt.ylim(0, 43e-2) #piggy
         # plt.ylim(0, 65e-2) #no_piggy
         #plt.text(0.5, 0.43  , 'E', fontsize=26)
         plt.xticks(X, labels, ha = 'center')

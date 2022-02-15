@@ -15,13 +15,13 @@ plt.rcParams.update({'font.size': 15})
 ####  DO RECZNEGO UZUPELNIENIA#############
 
 label_list = ['100', '1000', '10000']
-paths = ['/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD100/times_classic/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD1000/times_classic/','/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD10000/times_classic/',
-        '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD100/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD1000/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD10000/times_tail/'] 
-name = 'Piggy_2_Distribution'
+paths = ['/home/pzmij/2D/PAPER/Distribution/no_Piggy/SD100/times_classic/', '/home/pzmij/2D/PAPER/Distribution/no_Piggy/SD1000/times_classic/','/home/pzmij/2D/PAPER/Distribution/no_Piggy/SD10000/times_classic/',
+        '/home/pzmij/2D/PAPER/Distribution/no_Piggy/SD100/times_tail/', '/home/pzmij/2D/PAPER/Distribution/no_Piggy/SD1000/times_tail/', '/home/pzmij/2D/PAPER/Distribution/no_Piggy/SD10000/times_tail/'] 
+name = 'Piggy_3_Distribution'
 text_diff_piggy = 'Classic'
 text_diff_piggy2 = 'Tail'
 podpisy = [text_diff_piggy, text_diff_piggy2]
-outfile = '/home/pzmij/2D/PAPER/Wyniki/Distribution/Piggy_2/barrs/'
+outfile = '/home/pzmij/2D/PAPER/Wyniki/Distribution/no_Piggy/barrs/'
 width_multiplier = 0.57
 ##########################################################################
 def Rysuj_to(sciezki, etykiety, podpisy, name):
@@ -31,10 +31,11 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
     else:
         label = etykiety[0:int(len(sciezki)/2)]*len(podpisy)
     multi = len(podpisy)
-    Y = [i+1 for i in range(int(len(label)/len(podpisy)+1))]
+    #Y = [i+1 for i in range(int(len(label)/len(podpisy)+1))]
+    Y = [i+1 for i in range(multi)]
     X = np.repeat(Y, int(len(etykiety)))
-    labels = [podpisy[i] for i in range(int(len(label)/len(podpisy)+1)) ]
-    labels = np.repeat(labels, int(len(etykiety)))
+    #labels = [podpisy[i] for i in range(int(len(label)/len(podpisy)+1)) ]
+    labels = np.repeat(podpisy, int(len(etykiety)))
     def read_my_array(file_obj):
         arr_name = file_obj.readline()
         file_obj.readline() # discarded line with size of the array

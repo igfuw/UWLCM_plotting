@@ -15,13 +15,13 @@ plt.rcParams.update({'font.size': 15})
 ####  DO RECZNEGO UZUPELNIENIA#############
 
 label_list = ['100', '1000', '10000']
-paths = ['/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD100/times_classic/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD1000/times_classic/','/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD10000/times_classic/',
-        '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD100/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD1000/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD10000/times_tail/'] 
-name = 'Piggy_2_Distribution'
+paths = ['/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD100/times_classic/', '/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD1000/times_classic/','/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD10000/times_classic/',
+        '/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD100/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD1000/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_3/SD10000/times_tail/'] 
+name = 'Piggy_3_Distribution'
 text_diff_piggy = 'Classic'
 text_diff_piggy2 = 'Tail'
 podpisy = [text_diff_piggy, text_diff_piggy2]
-outfile = '/home/pzmij/2D/PAPER/Wyniki/Distribution/Piggy_2/barrs/'
+outfile = '/home/pzmij/2D/PAPER/Wyniki/Distribution/Piggy_3/barrs/'
 width_multiplier = 0.57
 ##########################################################################
 def Rysuj_to(sciezki, etykiety, podpisy, name):

@@ -14,14 +14,14 @@ plt.rcParams.update({'font.size': 15})
 ############################################################################
 ####  DO RECZNEGO UZUPELNIENIA#############
 
-label_list = ['100', '1000', '10000']
-paths = ['/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD100/times_classic/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD1000/times_classic/','/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD10000/times_classic/',
-        '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD100/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD1000/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy_2/SD10000/times_tail/'] 
-name = 'Piggy_2_Distribution'
+label_list = ['10000', '100', '1000']
+paths = ['/home/pzmij/2D/PAPER/Distribution/Piggy/SD10000/times_classic/', '/home/pzmij/2D/PAPER/Distribution/Piggy/SD100/times_classic/','/home/pzmij/2D/PAPER/Distribution/Piggy/SD1000/times_classic/',
+        '/home/pzmij/2D/PAPER/Distribution/Piggy/SD10000/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy/SD100/times_tail/', '/home/pzmij/2D/PAPER/Distribution/Piggy/SD1000/times_tail/'] 
+name = 'TEST_Piggy_Distribution'
 text_diff_piggy = 'Classic'
 text_diff_piggy2 = 'Tail'
 podpisy = [text_diff_piggy, text_diff_piggy2]
-outfile = '/home/pzmij/2D/PAPER/Wyniki/Distribution/Piggy_2/barrs/'
+outfile = '/home/pzmij/2D/PAPER/Wyniki/Distribution/Piggy/barrs/'
 width_multiplier = 0.57
 ##########################################################################
 def Rysuj_to(sciezki, etykiety, podpisy, name):
@@ -31,10 +31,19 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
     else:
         label = etykiety[0:int(len(sciezki)/2)]*len(podpisy)
     multi = len(podpisy)
-    Y = [i+1 for i in range(int(len(label)/len(podpisy)+1))]
-    X = np.repeat(Y, int(len(etykiety)))
-    labels = [podpisy[i] for i in range(int(len(label)/len(podpisy)+1)) ]
-    labels = np.repeat(labels, int(len(etykiety)))
+    labels = []
+    X = []
+    for i in range(len(label)):
+        if i < len(label)/multi :
+            labels.append(podpisy[0])
+            X.append(1)
+        elif  i < len(label)/multi*2:
+            labels.append(podpisy[1])
+            X.append(2)
+        else:
+            labels.append(podpisy[2])
+            X.append(3)
+
     def read_my_array(file_obj):
         arr_name = file_obj.readline()
         file_obj.readline() # discarded line with size of the array
@@ -51,6 +60,7 @@ def Rysuj_to(sciezki, etykiety, podpisy, name):
             arr, name = read_my_array(file_obj)
             if(str(name).strip() == str(var_name).strip()):
                 break
+            # print(arr, file_obj)
         return arr
     def licz_srednia(parameter_name, iter_value, sciezki):
         dl = len(series_file[iter_value])
