@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
  const string profiles_suffix = string("_profiles_")+argv[2]+string("_")+argv[3];
  string plot_type;
  // determine type of plots based on the name of the first file
- const string types[] = {"rico", "dycoms", "moist_thermal", "Cumulus_Congestus"};
+ const string types[] = {"rico", "dycoms", "moist_thermal", "cumulus_congestus"};
  for(auto type : types)
  {
    if(hasEnding(string(argv[4]), type))

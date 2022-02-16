@@ -56,8 +56,7 @@ int main(int argc, char** argv)
   H5::DataSet h5d = h5f.openDataSet("G");
   H5::DataSpace h5s = h5d.getSpace();
   int NDims = h5s.getSimpleExtentNdims();
-  std::cout<<"HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"<<std::endl;
-  //detecting if subgrid model was on
+  // detecting if subgrid model was on
   bool sgs = true;
   try 
   {
@@ -67,7 +66,7 @@ int main(int argc, char** argv)
   {
     sgs = false;
   }
-  
+
   Plots plots(type, sgs);
 
   if(NDims == 2)
@@ -75,15 +74,15 @@ int main(int argc, char** argv)
 
     if(flag_series)   plot_series(PlotterMicro_t<2>(h5, micro), plots, type);
     //if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro), plots, type, normalize_prof);
-    if(flag_fields)   plot_fields(PlotterMicro_t<2>(h5, micro), plots, type);
+    //if(flag_fields)   plot_fields(PlotterMicro_t<2>(h5, micro), plots, type);
     //if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro));
   }
   else if(NDims == 3)
   {
     if(flag_series)   plot_series(PlotterMicro_t<3>(h5, micro), plots, type);
     //if(flag_profiles) plot_profiles(PlotterMicro_t<3>(h5, micro), plots, type, normalize_prof);
-//    if(flag_fields)   plot_fields(PlotterMicro_t<3>(h5, micro), plots, type);
-//    if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro));
+    //if(flag_fields)   plot_fields(PlotterMicro_t<3>(h5, micro), plots, type);
+    //if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro));
 //    if(flag_lgrngn_spec) {
 //      plot_lgrngn_spec_positions(PlotterMicro_t<3>(h5, "lgrngn"));
 //      plot_lgrngn_spec(PlotterMicro_t<3>(h5, "lgrngn"));
