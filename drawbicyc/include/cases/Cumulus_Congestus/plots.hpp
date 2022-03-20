@@ -37,7 +37,7 @@ std::vector<std::string> profs_Cumulus_Congestus({
   "rliq",
   //"thl",
   //"wvar",
-  //"prflux",
+  "prflux",
   //"clfrac",
   //"sd_conc",
   "cl_nc",
@@ -45,15 +45,16 @@ std::vector<std::string> profs_Cumulus_Congestus({
   //"w",
   //"u",
   //"v",
-  //"base_prflux_vs_clhght",
+  "coal_tele",
+  "base_prflux_vs_clhght",
   //"non_gccn_rw_cl",
   //"gccn_rw_cl,"
   //, "N_c",
-  "actrw_reff_cl",
-  "ratio_mean_volume_r_to_eff_r_cubed",
-  "cloud_water_std",
-  "rain_water_std",
-  "cloud_std_dev"
+ // "actrw_reff_cl",
+ // "ratio_mean_volume_r_to_eff_r_cubed",
+ // "cloud_water_std",
+  //"rain_water_std",
+ // "cloud_std_dev"
   //,"vel_div"
   //, "nc_up"
   //,"sat_RH_up"

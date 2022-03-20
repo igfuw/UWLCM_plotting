@@ -1,5 +1,5 @@
 #include "include/plot_series.hpp"
-//#include "include/plot_prof.hpp"
+#include "include/plot_prof.hpp"
 #include "include/plot_fields.hpp"
 #include "include/plot_qv_qc_2_6_10_min.hpp"
 #include "include/plot_lgrngn_spec.hpp"
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
   {
 
     if(flag_series)   plot_series(PlotterMicro_t<2>(h5, micro), plots, type);
-    //if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro), plots, type, normalize_prof);
+    if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro), plots, type, normalize_prof);
     //if(flag_fields)   plot_fields(PlotterMicro_t<2>(h5, micro), plots, type);
     //if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro));
   }

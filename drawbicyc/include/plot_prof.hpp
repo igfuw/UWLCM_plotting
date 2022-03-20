@@ -42,7 +42,8 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
   std::cerr << int(n["dt"] * n["outfreq"]+0.5) << std::endl;
   int first_timestep =  vm["prof_start"].as<int>() / int(n["dt"] * n["outfreq"]+0.5);
   int last_timestep =  vm["prof_end"].as<int>() / int(n["dt"] * n["outfreq"]+0.5);
-
+  //int start_time =  vm["prof_start"].as<int>(); 
+  //int end_time =  vm["prof_end"].as<int>(); 
   // some ugly constants
   const double p_1000 = 100000.;
   const double L = 2.5e6;
@@ -68,17 +69,38 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
     blitz::secondIndex j;
     typename Plotter_t::arr_t res(rhod.shape());
     typename Plotter_t::arr_t res_tmp(rhod.shape());
+    //typename Plotter_t::arr_t res_tmp1(rhod.shape());
     typename Plotter_t::arr_t res_tmp2(rhod.shape());
+    //typename Plotter_t::arr_t res_tmp3(rhod.shape());
+    //typename Plotter_t::arr_t res_tmp4(rhod.shape());
+    //typename Plotter_t::arr_t res_sum(rhod.shape());
+    //typename Plotter_t::arr_t res_mean(rhod.shape());
+    //typename Plotter_t::arr_t rc_mask(rhod.shape());
     blitz::Array<float, 1> res_prof_sum(n["z"]);  // profile interpolate to the uniform grid summed over timesteps
     blitz::Array<float, 1> res_prof(n["z"]);      // profile interpolate to the uniform grid
     blitz::Array<float, 1> res_prof_hlpr(n["z"]); // actual profile
     blitz::Array<float, 1> prof_tmp(n["z"]);
+    //blitz::Array<float, 1> res_prof_num(n["z"]);
     blitz::Array<int, 1>   occur_no(n["z"]);      // number of occurances - for unusual profiles like base_prflux_vs_clhght
     blitz::Range all = blitz::Range::all();
 
     res_prof_sum = 0;
     occur_no = 0;
-
+    
+    if (plt == "coal_tele")
+      {
+	//coal tele mass flux in W/m^2
+	  //res = plotter.h5load_timestep("coal_tele_mass_flux",first_timestep *  n["outfreq"]) * 4./3 * 3.14 * 1e3 * 2264.76e3 / (plotter.CellVol * first_timestep * n["outfreq"] * n["dt"]);
+	  res = plotter.h5load_timestep("coal_tele_mass_flux",last_timestep *  n["outfreq"]) * 4./3 * 3.14 * 1e3 * 2264.76e3 / (plotter.CellVol * last_timestep * n["outfreq"] * n["dt"]);
+	  res -=  plotter.h5load_timestep("coal_tele_mass_flux",first_timestep *  n["outfreq"]) * 4./3 * 3.14 * 1e3 * 2264.76e3 / (plotter.CellVol * first_timestep * n["outfreq"] * n["dt"]);
+	  // - plotter.h5load_timestep("coal_tele_mass_flux",first_timestep *  n["outfreq"]) * 4./3 * 3.14 * 1e3 * 2264.76e3 / (plotter.CellVol * first_timestep * n["outfreq"] * n["dt"]);
+	  res_prof_hlpr = plotter.horizontal_mean(res);
+	  //auto tmp2 = plotter.h5load_timestep("coal_tele_mass_flux", last_timestep * n["outfreq"]);
+          //typename Plotter_t::arr_t snap(tmp);
+          //typename Plotter_t::arr_t snap2(tmp2);
+	  //res_prof_sum = (res_prof * 4./3 * 3.14 * 1e3 * 2264.76e3 / (plotter.CellVol * last_timestep * n["outfreq"] * n["dt"])) - (res_prof_hlpr * 4./3 * 3.14 * 1e3 * 2264.76e3 / (plotter.CellVol * first_timestep * n["outfreq"] * n["dt"]));  
+	  //res = tmp;
+      }
     for (int at = first_timestep; at <= last_timestep; ++at) // TODO: mark what time does it actually mean!
     {
       std::cout << at * n["outfreq"] << std::endl;
@@ -97,33 +119,44 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
 	// liquid water content
         res += plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
         res += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
-        typename Plotter_t::arr_t rc_mask(plotter.h5load_rc_timestep(at * n["outfreq"]));
-        rc_mask = iscloudy_rc_rico(rc_mask);
-        prof_tmp = plotter.horizontal_sum(rc_mask);
-        res_prof_hlpr = where(prof_tmp > 0, plotter.horizontal_sum(res) / prof_tmp, 0);
+        typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        res_tmp = iscloudy_rc_rico(snap);
+        res_prof_sum = plotter.horizontal_sum(res_tmp);
+        res_prof_hlpr = where(prof_tmp > 0, plotter.horizontal_sum(res) / res_prof_sum, 0);
       }
-      if (plt == "cloud_water_std")
+/*      if (plt == "cloud_water_std")
       {
         // cloud_water_std
-        res = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
-        rc_mask = iscloudy_rc_rico(res);
-        res_prof = res * rc_mask;
-        res_prof_num = plotter.horizontal_sum(rc_mask);
-        res_mean = plotter.horizontal_sum(res_prof) / res_prof_num;
-        res_sum = plotter.horizontal_sum((res_prof - res_mean) * (res_prof - res_mean)) / (res_prof_num -1);
-        res_prof_hlpr = where(rc_mask >0 , sqrt(res_sum) , 0);
+        //auto res = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
+        //typename Plotter_t::arr_t snap(res);
+	res = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
+	res_prof_sum = plotter.horizontal_sum(res);
+	res *=  iscloudy_rc_rico(res);
+	res_tmp = plotter.horizontal_sum(res_tmp) / res_prof_sum;
+	res_tmp2 = plotter.horizontal_sum((res - res_tmp) * (res - res_tmp)) / (res_prof_sum -1);
+	res_prof_hlpr = where(res >0, sqrt(res_tmp2), 0);	
+		
+	//rc_mask = iscloudy_rc_rico(res);
+        //res_tmp = res * rc_mask;
+        //res_prof_num = plotter.horizontal_sum(rc_mask);
+        //res_mean = plotter.horizontal_sum(res_tmp) / res_prof_num;
+        //res_sum = plotter.horizontal_sum((res_tmp - res_mean) * (res_tmp - res_mean)) / (res_prof_num -1);
+        //res_prof_hlpr = where(rc_mask >0 , sqrt(res_sum) , 0);
       }
-      if (plt == "rain_water_std")
-      {
+*/
+      //if (plt == "rain_water_std")
+      //{
         // rain_water_std
-        res = plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // cloud
-        rc_mask = iscloudy_rc_rico(res);
-        res_prof = res * rc_mask;
-        res_prof_num = plotter.horizontal_sum(rc_mask);
-        res_mean = plotter.horizontal_sum(res_prof) / res_prof_num;
-        res_sum = plotter.horizontal_sum((res_prof - res_mean) * (res_prof - res_mean)) / (res_prof_num -1);
-        res_prof_hlpr = where(rc_mask >0 , sqrt(res_sum) , 0);
-      }
+      //  auto tmp = plotter.h5load_rr_timestep(at * n["outfreq"])
+
+      //  res = plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // cloud
+      //  rc_mask = iscloudy_rc_rico(res);
+      //  res_tmp = res * rc_mask;
+      //  res_prof_num = plotter.horizontal_sum(rc_mask);
+      //  res_mean = plotter.horizontal_sum(res_tmp) / res_prof_num;
+      //  res_sum = plotter.horizontal_sum((res_prof - res_mean) * (res_prof - res_mean)) / (res_prof_num -1);
+      //  res_prof_hlpr = where(rc_mask >0 , sqrt(res_sum) , 0);
+      //}
       if (plt == "gccn_conc")
       {
         res = plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]) * rhod / 1e6;
@@ -463,35 +496,35 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
         res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
       }
-      if (plt == "ratio_mean_volume_r_to_eff_r_cubed")
-      {
+      //if (plt == "ratio_mean_volume_r_to_eff_r_cubed")
+      //{
         // ratio mean (r volume / r effective) ^3 
-	{
-	    typename Plotter_t::arr_t snap(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
-            res_tmp = snap;
-          }
-          {
-            auto tmp2 = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
-            typename Plotter_t::arr_t snap(tmp2);
-            res_tmp2 = snap;
-           }
-           {
-            auto tmp3 = plotter.h5load_timestep("actrw_rw_mom3", at * n["outfreq"]);
-            typename Plotter_t::arr_t snap(tmp3);
-            res_tmp3 = snap;
-           }
-           {
-            typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-            res_tmp4 = iscloudy_rc_rico(snap);
-           }
+	//{
+	//   typename Plotter_t::arr_t snap(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
+        //    res_tmp = snap;
+        //  }
+        //  {
+        //    auto tmp2 = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
+        //    typename Plotter_t::arr_t snap(tmp2);
+        //    res_tmp2 = snap;
+        //   }
+        //   {
+        //    auto tmp3 = plotter.h5load_timestep("actrw_rw_mom3", at * n["outfreq"]);
+        //   typename Plotter_t::arr_t snap(tmp3);
+        //    res_tmp3 = snap;
+        //   }
+        //   {
+        //    typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        //    res_tmp4 = iscloudy_rc_rico(snap);
+        //   }
 
-           res_tmp = where(res_tmp > 0, res_tmp2 * res_tmp2 * res_tmp2 / res_tmp, 0. );
-           res_tmp = where(res_tmp3 > 0, res_tmp / res_tmp3 / res_tmp3, 0.);
-           res_tmp *= res_tmp4;	 
-           prof_tmp = plotter.horizontal_sum(res_tmp4); // number of downdraft cells on a given level
-           res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
-      }
-      if (plt == "cloud_std_dev")
+        //  res_tmp = where(res_tmp > 0, res_tmp2 * res_tmp2 * res_tmp2 / res_tmp, 0. );
+        //   res_tmp = where(res_tmp3 > 0, res_tmp / res_tmp3 / res_tmp3, 0.);
+        //   res_tmp *= res_tmp4;	 
+        //   prof_tmp = plotter.horizontal_sum(res_tmp4); // number of downdraft cells on a given level
+        //   res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+     // }
+     /* if (plt == "cloud_std_dev")
       {
           {
             auto tmp1 = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]) *1e6;
@@ -519,6 +552,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
             prof_tmp = plotter.horizontal_sum(res_tmp3); // number of downdraft cells on a given level
             res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
       }
+	*/
       if (plt == "nc_up")
       {
         // updraft only
@@ -1063,7 +1097,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       oprof_file << res_pos;
       res_pos_out_done = true;
     }
-
     if (plt != "base_prflux_vs_clhght")
       res_prof_sum /= last_timestep - first_timestep + 1;
     else
@@ -1075,7 +1108,6 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
     // do the plotting
     gp << "plot '-' with line\n";
     gp.send1d(boost::make_tuple(res_prof_sum, res_pos));
-
     if (plt == "base_prflux_vs_clhght")
     {
       oprof_file << plt << " number of occurances" << endl;

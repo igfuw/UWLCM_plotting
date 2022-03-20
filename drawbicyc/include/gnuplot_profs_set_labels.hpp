@@ -162,6 +162,10 @@ void gnuplot_profs_set_labels(Gnuplot &gp, std::string plt, const bool normalize
   {
     gp << "set title 'precipitation flux [W/m^2]'\n";
   }
+  else if (plt == "coal_tele")
+  {
+    gp << "set title 'coal tele mass flux [W/m^2]'\n";
+  }
   else if (plt == "rad_flx")
   {
     gp << "set title 'radiative flux [W/m2]'\n";
