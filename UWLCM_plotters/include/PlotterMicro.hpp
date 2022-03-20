@@ -43,6 +43,8 @@ class PlotterMicro_t : public Plotter_t<NDims>
       res = this->h5load_timestep("cloud_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
     else if(this->micro == "blk_1m")
       res = this->h5load_timestep("rc", at);
+    else if(this->micro == "blk_2m")
+      res = this->h5load_timestep("rc", at);
     return blitz::safeToReturn(res + 0);
   }
 
@@ -54,6 +56,8 @@ class PlotterMicro_t : public Plotter_t<NDims>
     if(this->micro == "lgrngn")
       res = this->h5load_timestep("rain_rw_mom3", at) * 4./3. * 3.1416 * 1e3;
     else if(this->micro == "blk_1m")
+      res = this->h5load_timestep("rr", at);
+    else if(this->micro == "blk_2m")
       res = this->h5load_timestep("rr", at);
     return blitz::safeToReturn(res + 0);
   }
@@ -73,6 +77,11 @@ class PlotterMicro_t : public Plotter_t<NDims>
       res = this->h5load_timestep("rc", at);
       res += arr_t(this->h5load_timestep("rr", at));
     }
+    else if(this->micro == "blk_2m")
+    {
+      res = this->h5load_timestep("rc", at);
+      res += arr_t(this->h5load_timestep("rr", at));
+    }
     return blitz::safeToReturn(res + 0);
   }
 
@@ -85,6 +94,8 @@ class PlotterMicro_t : public Plotter_t<NDims>
       res = this->h5load_timestep("cloud_rw_mom0", at);
     else if(this->micro == "blk_1m")
       res = 0;
+    else if(this->micro == "blk_2m")
+      res = this->h5load_timestep("nc", at);
     return blitz::safeToReturn(res + 0);
   }
 
@@ -190,9 +201,20 @@ class PlotterMicro_t : public Plotter_t<NDims>
   // mean and std_dev of concentration of activated droplets in cloudy cells [1/cm^3] (characteristics of the spatial distribution at this timestep)
   std::pair<double, double> cloud_actconc_stats_timestep(int at)
   {   
-    if(this->micro == "blk_1m") return {0,0};
+    arr_t actconc;
     // read concentration of activated droplets
-    arr_t actconc(this->h5load_timestep("actrw_rw_mom0", at));
+    if(this->micro == "blk_1m") return {0,0};
+    // TODO: fix stupid copying of arrays
+    else if(this->micro == "lgrngn") {
+      arr_t tmp(this->h5load_timestep("actrw_rw_mom0", at));
+      actconc.resize(tmp.shape());
+      actconc = tmp;
+    }
+    else if(this->micro == "blk_2m") {
+      arr_t tmp(arr_t(this->h5load_timestep("nc", at)) + arr_t(this->h5load_timestep("nr", at)));
+      actconc.resize(tmp.shape());
+      actconc = tmp;
+    }
     actconc *= rhod; // b4 it was specific moment
     actconc /= 1e6; // per cm^3
     return cloud_hlpr(actconc, at);
@@ -345,7 +367,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
   {
     if(this->micro == "lgrngn")
       return prec_vol_diff / this->DomainSurf / (double(this->map["outfreq"]) * this->map["dt"] / 3600. / 24.) * 1e3; // SDM
-    if(this->micro == "blk_1m")
+    if(this->micro == "blk_1m" || this->micro == "blk_2m")
       return prec_vol_diff / double(this->map["outfreq"]) // flux in [kg / m^3 / s] averaged over time since last output and over cells on the bottom
                      / (this->map["x"] * this->map["y"])
                      * 3600. * 24. // per day
@@ -359,7 +381,7 @@ class PlotterMicro_t : public Plotter_t<NDims>
   {
     if(this->micro == "lgrngn")
       return prec_vol / this->DomainSurf * 1e3; 
-    if(this->micro == "blk_1m")
+    if(this->micro == "blk_1m" || this->micro == "blk_2m")
       return prec_vol * this->map["dt"] 
                      / (this->map["x"] * this->map["y"])
                      * this->map["dz"]     // per m^2

@@ -176,6 +176,7 @@ class Plotter_t<2> : public PlotterCommon
     // read number of cells
     this->h5f.openDataSet("X").getSpace().getSimpleExtentDims(n, NULL); // X gives cell-border coordinates (+1)
     this->map["x"] = n[0]-1;
+    this->map["y"] = 1;
     this->map["z"] = n[1]-1;
     tmp.resize(n[0], n[1]);
     dv.resize(n[0], n[1]);
