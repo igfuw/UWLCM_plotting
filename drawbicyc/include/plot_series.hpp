@@ -28,7 +28,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
   typename Plotter_t::arr_t rtot(rhod.shape());
 
   typename Plotter_t::arr_t res_tmp(rhod.shape());
-
+  
   // for calculating running averages of u and w, needed in TKE calc in Pi chamber LES
   std::vector<typename Plotter_t::arr_t> prev_u_vec, prev_w_vec;
   // container for the running sum

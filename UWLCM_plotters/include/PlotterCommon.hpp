@@ -30,10 +30,10 @@ class PlotterCommon
   {
     if(h5f.getFileName() != file)
     {
-      notice_macro("about to close current file: " << h5f.getFileName())
+      notice_macro("Teraz about to close current file: " << h5f.getFileName())
       h5f.close();
 
-      notice_macro("about to open file: " << file)
+      notice_macro("Teraaz 1about to open file: " << file)
       h5f.openFile(file, H5F_ACC_RDONLY);
     }
 
@@ -46,10 +46,10 @@ class PlotterCommon
   {
     if(h5f.getFileName() != file)
     {
-      notice_macro("about to close current file: " << h5f.getFileName())
+      notice_macro("Teraz 2 about to close current file: " << h5f.getFileName())
       h5f.close();
   
-      notice_macro("about to open file: " << file)
+      notice_macro("Teraz 2about to open file: " << file)
       h5f.openFile(file, H5F_ACC_RDONLY);
     }
   
@@ -85,7 +85,7 @@ class PlotterCommon
     file(file)
   {
     // init h5f
-    notice_macro("about to open file: " << file << "/const.h5")
+    notice_macro("Teraz 3about to open file: " << file << "/const.h5")
     h5f.openFile(file + "/const.h5", H5F_ACC_RDONLY);
 
     // init dt and outfreq

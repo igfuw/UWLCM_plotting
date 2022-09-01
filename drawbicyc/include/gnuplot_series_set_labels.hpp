@@ -187,6 +187,24 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
+  else if (plt == "cloud_top_height")
+  {
+    gp << "set title 'cloud top height [m]'\n";
+    gp << "set xlabel 'time [min]'\n";
+    gp << "set ylabel 'height [m]'\n";
+  }
+  else if (plt == "total_droplets_number")
+  {
+    gp << "set title 'Total droplets number [#]'\n";
+    gp << "set xlabel 'time [min]'\n";
+    gp << "set ylabel ''\n";
+  }
+  else if (plt == "acc_vol_precip")
+  {
+    gp << "set title 'accumulated volume precipitation [mm^3]'\n";
+    gp << "set xlabel 'time [h]'\n";
+    gp << "set ylabel ''\n";
+  }
   else if (plt == "mass_dry")
     gp << "set title 'total dry mass [g]'\n";
   else if (plt == "RH_max")
@@ -198,13 +216,35 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
   else if (plt == "lwp")
   {
     gp << "set title 'liquid water path [g / m^2]'\n";
-    gp << "set xlabel ''\n";
+    gp << "set xlabel 'time[h]'\n";
+    gp << "set ylabel ''\n";
+  }
+  else if (plt == "lwm")
+  {
+    gp << "set title 'liquid water mass [kg]'\n";
+    gp << "set xlabel 'time[h]'\n";
+    gp << "set ylabel ''\n";
+  }else if (plt == "cwm")
+  {
+    gp << "set title 'cloud water mass [kg]'\n";
+    gp << "set xlabel 'time[h]'\n";
+    gp << "set ylabel ''\n";
+  }else if (plt == "rwm")
+  {
+    gp << "set title 'rain water mass [kg]'\n";
+    gp << "set xlabel 'time[h]'\n";
     gp << "set ylabel ''\n";
   }
   else if (plt == "rwp")
   {
     gp << "set title 'rain water path [g / m^2]'\n";
-    gp << "set xlabel ''\n";
+    gp << "set xlabel 'time [h]'\n";
+    gp << "set ylabel ''\n";
+  }
+  else if (plt == "cwp")
+  {
+    gp << "set title 'cloud water path [g / m^2]'\n";
+    gp << "set xlabel 'time [h]'\n";
     gp << "set ylabel ''\n";
   }
   else if (plt == "cloud_base_dycoms")

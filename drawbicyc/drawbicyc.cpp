@@ -37,7 +37,7 @@ int main(int argc, char** argv)
     throw std::runtime_error("Unrecognized 'type' option, only dycoms, rico, moist_thermal, pi_chamber, pi_chamber_icmw, cumulus_congestus, gccn_ccn_conc  available now");//, base_prflux_vs_clhght available now");
 
   // should profiles be normalized by inversion height
-  const bool normalize_prof = type == "dycoms";
+  //const bool normalize_prof = type == "dycoms";
 
   // parse dir name
   std::string
@@ -56,8 +56,10 @@ int main(int argc, char** argv)
   H5::DataSet h5d = h5f.openDataSet("G");
   H5::DataSpace h5s = h5d.getSpace();
   int NDims = h5s.getSimpleExtentNdims();
-  // detecting if subgrid model was on
+  std::cout << NDims <<std::endl;
+  //detecting if subgrid model was on
   bool sgs = true;
+  std::cout<<"WARTOSC SGS"<<std::endl;
   try 
   {
     auto h5g = h5f.openGroup("sgs");
@@ -68,18 +70,19 @@ int main(int argc, char** argv)
   }
 
   Plots plots(type, sgs);
+  //Plots plots(type, false);
 
   if(NDims == 2)
   {
 
     if(flag_series)   plot_series(PlotterMicro_t<2>(h5, micro), plots, type);
-    if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro), plots, type, normalize_prof);
+//    if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro), plots, type, normalize_prof);
     //if(flag_fields)   plot_fields(PlotterMicro_t<2>(h5, micro), plots, type);
     //if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro));
   }
-  else if(NDims == 3)
-  {
-    if(flag_series)   plot_series(PlotterMicro_t<3>(h5, micro), plots, type);
+//  else if(NDims == 3)
+//  {
+//    if(flag_series)   plot_series(PlotterMicro_t<3>(h5, micro), plots, type);
     //if(flag_profiles) plot_profiles(PlotterMicro_t<3>(h5, micro), plots, type, normalize_prof);
     //if(flag_fields)   plot_fields(PlotterMicro_t<3>(h5, micro), plots, type);
     //if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro));
@@ -87,7 +90,7 @@ int main(int argc, char** argv)
 //      plot_lgrngn_spec_positions(PlotterMicro_t<3>(h5, "lgrngn"));
 //      plot_lgrngn_spec(PlotterMicro_t<3>(h5, "lgrngn"));
 //    }
-  }
+//  }
   else
     assert(false && "need 2d or 3d input data");
 
