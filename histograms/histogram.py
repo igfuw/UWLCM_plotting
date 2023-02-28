@@ -45,7 +45,7 @@ parser.add_argument("-of", "--outfig", help="output file name", required=True)
 parser.add_argument("--outfreq", type=int, required=False, help="output frequency of the simulation [number of time steps], if not specified it will be read from const.h5 (if possible)")
 parser.add_argument('--normalize', action='store_true', help="normalize the histogram")
 parser.add_argument('--no_histogram', action='store_true', help="dont save the histogram plot")
-parser.add_argument('--no_correlations', action='store_true', help="dont calculate correlations and dot save the scatter plot")
+parser.add_argument('--no_scatter', action='store_true', help="dont calculate correlations and dot save the scatter plot")
 parser.add_argument('--mask_rico', action='store_true', help="compute histogram only within cloud cells (using the rico cloud mask)")
 parser.set_defaults(normalie=False)
 args = parser.parse_args()
@@ -271,5 +271,5 @@ if(not args.no_histogram):
 plt.figure(2)
 plt.legend()#loc = 'lower center')
 
-if(not args.no_correlations):
+if(not args.no_scatter):
   plt.savefig(args.outfig + 'scatter.svg')

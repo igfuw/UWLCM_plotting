@@ -1,4 +1,4 @@
-#include <UWLCM_plotters/PlotterMicro.hpp>
+#include <UWLCM_plotters/PlotterMask.hpp>
 #include <boost/tuple/tuple.hpp>
 //#include <libcloudph++/common/const_cp.hpp>
 #include "plots.hpp"
@@ -8,6 +8,7 @@
 template<class Plotter_t>
 void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool normalize)
 {
+  using arr_t = typename Plotter_t::arr_t;
 
   // read opts
   po::options_description opts("profile plotting options");
@@ -87,9 +88,9 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       if (plt == "rliq")
       {
 	// liquid water content
- //       res += plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
-        res += plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
-        res += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
+ //       res += plotter.load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
+        res += plotter.load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
+        res += plotter.load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }
       if (plt == "gccn_conc")
@@ -132,8 +133,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         }
         {
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          res_tmp2 = iscloudy_rc_rico(snap);
+          res_tmp2 = arr_t(plotter.get_mask(at * n["outfreq"]));
           res_tmp *= res_tmp2;
         }
         // mean only over downdraught cells
@@ -149,8 +149,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp); // mean radius
         }
         {
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          res_tmp2 = iscloudy_rc_rico(snap);
+          res_tmp2 = arr_t(plotter.get_mask(at * n["outfreq"]));
           res_tmp *= res_tmp2;
         }
         // mean only over downdraught cells
@@ -206,8 +205,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
           res_tmp2 = isdowndraught(snap);
         }
         { // cloudy
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          res_tmp = iscloudy_rc_rico(snap);
+          res_tmp = arr_t(plotter.get_mask(at * n["outfreq"]));
           res_tmp2 *= res_tmp;
         }
         // mean rw
@@ -235,8 +233,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
           res_tmp2 = isdowndraught(snap);
         }
         { // cloudy
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          res_tmp = iscloudy_rc_rico(snap);
+          res_tmp = arr_t(plotter.get_mask(at * n["outfreq"]));
           res_tmp2 *= res_tmp;
         }
         // mean rw
@@ -264,8 +261,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
           res_tmp2 = isupdraught(snap);
         }
         { // cloudy
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          res_tmp = iscloudy_rc_rico(snap);
+          res_tmp = arr_t(plotter.get_mask(at * n["outfreq"]));
           res_tmp2 *= res_tmp;
         }
         // mean rw
@@ -401,8 +397,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         }
         {
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          res_tmp2 = iscloudy_rc_rico(snap);
+          res_tmp2 = arr_t(plotter.get_mask(at * n["outfreq"]));
           res_tmp *= res_tmp2;
         }
         // mean only over downdraught cells
@@ -423,8 +418,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
           res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
         }
         {
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          res_tmp2 = iscloudy_rc_rico(snap);
+          res_tmp2 = arr_t(plotter.get_mask(at * n["outfreq"]));
           res_tmp *= res_tmp2;
         }
         // mean only over downdraught cells
@@ -443,10 +437,9 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
 
         {
-          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+          auto tmp = plotter.load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap;
-          res_tmp *= rhod / 1e6; // per cm^3
         }
         // updraft only
         res_tmp *= res_tmp2;
@@ -462,14 +455,11 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         }
 
         {
-          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          res_tmp = snap;
-          snap = iscloudy(snap); // cloudiness mask
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           res_tmp2 *= snap; // cloudy updrafts only
         }
+
+        res_tmp = typename Plotter_t::arr_t(plotter.load_nc_timestep(at * n["outfreq"]));
 
         // mean only over cloudy updraught cells
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
@@ -490,10 +480,9 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
 
         {
-          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
+          auto tmp = plotter.load_nc_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = snap;
-          res_tmp *= rhod / 1e6; // per cm^3
         }
         // updraft only
         res_tmp *= res_tmp2;
@@ -605,19 +594,19 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       }
       else if (plt == "sat_RH")
       {
-        res = plotter.h5load_RH_timestep(at * n["outfreq"]);
+        res = plotter.load_RH_timestep(at * n["outfreq"]);
         res = (res -1) * 100;
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }
       else if (plt == "RH")
       {
-        res = plotter.h5load_RH_timestep(at * n["outfreq"]);
+        res = plotter.load_RH_timestep(at * n["outfreq"]);
         res_prof_hlpr = plotter.horizontal_mean(res) * 100; // average in x; [%]
       }
       else if (plt == "sat_RH_up")
       {
         {
-          auto tmp = plotter.h5load_RH_timestep(at * n["outfreq"]);
+          auto tmp = plotter.load_RH_timestep(at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
           res_tmp = (snap -1) * 100;
         }
@@ -637,9 +626,9 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       }
       else if (plt == "00rtot")
       {
-      //  res = plotter.h5load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
-        res = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
-        res += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
+      //  res = plotter.load_ra_timestep(at * n["outfreq"]) * 1e3; // aerosol
+        res = plotter.load_rc_timestep(at * n["outfreq"]) * 1e3; // cloud
+        res += plotter.load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
         res += plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3; // vapour
 
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
@@ -659,7 +648,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       else if (plt == "N_c")
       {
 	// cloud drops concentration [1/cm^3]
-        res = plotter.h5load_nc_timestep(at * n["outfreq"]) * rhod / 1e6; // from sepcific to normal moment + per cm^3
+        res = plotter.load_nc_timestep(at * n["outfreq"]); // from sepcific to normal moment + per cm^3
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }
       else if (plt == "rd_geq_0.8um_conc")
@@ -679,15 +668,8 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
 	// cloud droplet (0.5um < r < 25 um) concentration in cloudy grid cells
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          typename Plotter_t::arr_t snap2;
-          snap2.resize(snap.shape());
-          snap2=snap;
-          snap = iscloudy(snap); // cloudiness mask
+          typename Plotter_t::arr_t snap2(plotter.load_nc_timestep(at * n["outfreq"]));
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           snap2 *= snap;
 
           // mean only over cloudy cells
@@ -701,9 +683,9 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
 	// liquid potential temp [K]
         {
           auto &ql(res_tmp2);
-          ql  = plotter.h5load_rc_timestep(at * n["outfreq"]); // cloud
-//          ql  += plotter.h5load_ra_timestep(at * n["outfreq"]); // aerosol
-          ql  += plotter.h5load_rr_timestep(at * n["outfreq"]); // rain
+          ql  = plotter.load_rc_timestep(at * n["outfreq"]); // cloud
+//          ql  += plotter.load_ra_timestep(at * n["outfreq"]); // aerosol
+          ql  += plotter.load_rr_timestep(at * n["outfreq"]); // rain
           // ql is now q_l (liq water content)
 //          auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
   //        typename Plotter_t::arr_t th_d(tmp); 
@@ -737,11 +719,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       {
 	// cloud fraction (cloudy if N_c > 20/cm^3)
         {
-          auto tmp = plotter.h5load_nc_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap);
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           res += snap; 
         }
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
@@ -750,15 +728,13 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       // TODO: 'normalize' messes with this plot
       {
         res_prof_hlpr = 0;
-        // cloudy cells (cloudy if q_c > 0.01 g/kg as in RICO paper. NOTE: also add q_r ?)
-        typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-        snap = iscloudy_rc_rico(snap); // cloudiness mask
+        arr_t snap(plotter.get_mask(at * n["outfreq"]));
         plotter.k_i = blitz::sum(snap, plotter.LastIndex); // sum in the vertical, assumes that all cloudy cells in a column belong to the same cloud
 
         plotter.tmp_int_hrzntl_slice = blitz::first(snap > 0, plotter.LastIndex); // cloud base hgt over dz
 
         // precipitation flux(doesnt include vertical velocity w!)
-        res = plotter.h5load_prflux_timestep(at * n["outfreq"]);
+        res = plotter.load_prflux_timestep(at * n["outfreq"]);
         plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(res, plotter.tmp_int_hrzntl_slice); // precip flux at cloud base
 
         // NOTE: we assume that k_i and tmp_float_hr... is contiguous in memory
@@ -776,7 +752,7 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       {
 	// precipitation flux(doesnt include vertical volicty w!)
         { 
-          res = plotter.h5load_prflux_timestep(at * n["outfreq"]);
+          res = plotter.load_prflux_timestep(at * n["outfreq"]);
           res_prof_hlpr = plotter.horizontal_mean(res); // average in x
         }
 	// add vertical velocity to precipitation flux (3rd mom of cloud drops * w)

@@ -1,7 +1,7 @@
 #include <unordered_set>
 #include <iomanip> 
 #include <boost/tuple/tuple.hpp>
-#include <UWLCM_plotters/PlotterMicro.hpp>
+#include <UWLCM_plotters/PlotterMask.hpp>
 #include "plots.hpp"
 #include "gnuplot.hpp"
 
@@ -36,7 +36,7 @@ void plot_fields(Plotter_t plotter, Plots plots, std::string type)
       {
         try{
           // cloud water content
-        auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]) * 1e3;
+        auto tmp = plotter.load_ract_timestep(at * n["outfreq"]) * 1e3;
 
         std::string title = "cloud water mixing ratio [g/kg]";
           gp << "set title '" + title + " t = " << std::fixed << std::setprecision(2) << (double(at) * n["outfreq"] * n["dt"] / 60.) << "min'\n";

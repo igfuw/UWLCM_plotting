@@ -1,4 +1,4 @@
-#include <UWLCM_plotters/PlotterMicro.hpp>
+#include <UWLCM_plotters/PlotterMask.hpp>
 #include <boost/tuple/tuple.hpp>
 #include "plots.hpp"
 #include "gnuplot_series_set_labels.hpp"
@@ -7,6 +7,8 @@
 template<class Plotter_t>
 void plot_series(Plotter_t plotter, Plots plots, std::string type)
 {
+  using arr_t = typename Plotter_t::arr_t;
+
   auto& n = plotter.map;
   auto& n_prof = plotter.map_prof;
   for(auto elem : n)
@@ -24,15 +26,15 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 
   // read in density
   auto tmp = plotter.h5load(plotter.file + "/const.h5", "G");
-  typename Plotter_t::arr_t rhod(tmp);
-  typename Plotter_t::arr_t rtot(rhod.shape());
+  arr_t rhod(tmp);
+  arr_t rtot(rhod.shape());
 
-  typename Plotter_t::arr_t res_tmp(rhod.shape());
+  arr_t res_tmp(rhod.shape());
   
   // for calculating running averages of u and w, needed in TKE calc in Pi chamber LES
-  std::vector<typename Plotter_t::arr_t> prev_u_vec, prev_w_vec;
+  std::vector<arr_t> prev_u_vec, prev_w_vec;
   // container for the running sum
-  typename Plotter_t::arr_t run_sum_u(rhod.shape()), run_sum_w(rhod.shape());
+  arr_t run_sum_u(rhod.shape()), run_sum_w(rhod.shape());
   run_sum_u = 0;
   run_sum_w = 0;
   // number of timesteps over which the running avg of u and w is calculated (1 min interval)
@@ -122,29 +124,27 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 
     for (auto &plt : plots.series)
     {
+      std::cerr << plt << std::endl;
       if (plt == "cloud_cover_dycoms")
       {
         try
         {
-          auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; //g/kg
-          typename Plotter_t::arr_t snap(tmp); 
-          snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; //g/kg
-          snap *= rhod; // water per cubic metre (should be wet density...)
-          plotter.k_i = blitz::sum(snap, plotter.LastIndex) * n["dz"]; // LWP [g/m2] in the column 
+          auto tmp = plotter.load_rc_timestep(at * n["outfreq"]) * 1e3; //g/kg
+          arr_t snap(tmp); 
+          snap += plotter.load_rr_timestep(at * n["outfreq"]) * 1e3; //g/kg
+          plotter.multiply_by_rhod(snap); 
+          plotter.k_i = blitz::sum(snap, plotter.LastIndex) * n["refined dz"]; // LWP [g/m2] in the column 
           plotter.k_i = where(plotter.k_i > 20 , 1 , 0); // cloudiness as in Ackermann et al. 
           res_series[plt](at) = blitz::mean(plotter.k_i);
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
-      else if (plt == "cloud_cover_rico")
+      else if (plt == "cloud_cover")
       {
         try
         {
           // cloud fraction (fraction of columns with at least one cloudy cell, i.e. cell with  q_c > 0.01 g/kg)
-          auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap = iscloudy_rc_rico(snap); // find cells with rc>1e-5
-          snap(plotter.hrzntl_slice(0)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
           plotter.k_i = blitz::sum(snap, plotter.LastIndex);
           plotter.k_i = where(plotter.k_i > 0, 1, 0);
@@ -160,13 +160,13 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           // read RH 
           auto tmp = plotter.h5load_timestep("RH", at * n["outfreq"]);
 
-          typename Plotter_t::arr_t snap(tmp);
+          arr_t snap(tmp);
           res_series[plt](at) = blitz::max(snap);
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
-      // r_act averaged over cloudy cells
-      else if (plt == "ract_avg")
+      // mixing ratio of acivated droplets averaged over cloudy cells
+      else if (plt == "cl_ract")
       {
         try
         {
@@ -177,14 +177,11 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
       // cloud top height
-      else if (plt =="cloud_top_height")
+      else if (plt =="cl_top_height")
       {
         try
         {
-	  // cloud fraction (cloudy if ql > 1e-5))
-	  auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap = iscloudy_rc_rico(snap);
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           plotter.k_i = blitz::last((snap == 1), plotter.LastIndex);
           auto cloudy_column = plotter.k_i.copy();
           cloudy_column = blitz::sum(snap, plotter.LastIndex);
@@ -237,27 +234,27 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 /*  
           {
             auto tmp = plotter.h5load_timestep("aerosol_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
-            typename Plotter_t::arr_t snap(tmp);
+            arr_t snap(tmp);
             snap *= rhod;
             res_series[plt](at) = blitz::mean(snap);
           }
 */  
           {
             auto tmp = plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
-            typename Plotter_t::arr_t snap(tmp);
-            snap *= rhod;
+            arr_t snap(tmp);
+            plotter.multiply_by_rhod(snap); 
             res_series[plt](at) += blitz::mean(snap);
           }
           {
             auto tmp = plotter.h5load_timestep("rain_rw_mom3", at * n["outfreq"]) * 4./3. * 3.1416 * 1e3;
-            typename Plotter_t::arr_t snap(tmp);
-            snap *= rhod;
+            arr_t snap(tmp);
+            plotter.multiply_by_rhod(snap); 
             res_series[plt](at) += blitz::mean(snap);
           }
           {
             auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]);
-            typename Plotter_t::arr_t snap(tmp);
-            snap *= rhod;
+            arr_t snap(tmp);
+            plotter.multiply_by_rhod(snap); 
             res_series[plt](at) += blitz::mean(snap);
           } 
         }
@@ -277,10 +274,10 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // vertical velocity at the center of mass of activated droplets
         try
         {
-          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          typename Plotter_t::arr_t snap2(tmp);
-          typename Plotter_t::arr_t snap3(tmp);
+          auto tmp = plotter.load_ract_timestep(at * n["outfreq"]);
+          arr_t snap(tmp);
+          arr_t snap2(tmp);
+          arr_t snap3(tmp);
           
           snap2 = snap2 * plotter.LastIndex;
           snap3 = snap3 * blitz::tensor::i;
@@ -289,7 +286,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
             int z_idx = blitz::sum(snap2) / blitz::sum(snap); 
             int x_idx = blitz::sum(snap3) / blitz::sum(snap); 
             auto tmp2 = plotter.h5load_timestep("w", at * n["outfreq"]);
-            typename Plotter_t::arr_t snap_mom(tmp2);
+            arr_t snap_mom(tmp2);
             res_series[plt](at) = snap_mom(x_idx, z_idx);
           } 
           else 
@@ -302,10 +299,10 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // supersaturation at the center of mass of activated droplets
         try
         {
-          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          typename Plotter_t::arr_t snap2(tmp);
-          typename Plotter_t::arr_t snap3(tmp);
+          auto tmp = plotter.load_ract_timestep(at * n["outfreq"]);
+          arr_t snap(tmp);
+          arr_t snap2(tmp);
+          arr_t snap3(tmp);
           
           snap2 = snap2 * plotter.LastIndex;
           snap3 = snap3 * blitz::tensor::i;
@@ -314,7 +311,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
             int z_idx = blitz::sum(snap2) / blitz::sum(snap); 
             int x_idx = blitz::sum(snap3) / blitz::sum(snap); 
             auto tmp2 = plotter.h5load_timestep("RH", at * n["outfreq"]);
-            typename Plotter_t::arr_t snap_mom(tmp2);
+            arr_t snap_mom(tmp2);
             res_series[plt](at) = snap_mom(x_idx, z_idx) - 1;
           } 
           else 
@@ -327,10 +324,10 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // 0th moment of rw distribution at the center of mass of activated droplets (particles concentration), 2D only
         try
         {
-          auto tmp = plotter.h5load_ract_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          typename Plotter_t::arr_t snap2(tmp);
-          typename Plotter_t::arr_t snap3(tmp);
+          auto tmp = plotter.load_ract_timestep(at * n["outfreq"]);
+          arr_t snap(tmp);
+          arr_t snap2(tmp);
+          arr_t snap3(tmp);
           
           snap2 = snap2 * plotter.LastIndex;
           snap3 = snap3 * blitz::tensor::i;
@@ -340,9 +337,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
             com_x_idx(at) = blitz::sum(snap3) / blitz::sum(snap); 
             std::cout << at << ": (" << com_x_idx(at) << "," << com_z_idx(at) << ")" << std::endl;
             auto tmp2 = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
-            typename Plotter_t::arr_t snap_mom(tmp2);
+            arr_t snap_mom(tmp2);
             com_N_c(at) = snap_mom(com_x_idx(at), com_z_idx(at)); // 0th raw moment / mass [1/kg]
-            snap_mom *= rhod; // now per m^3
+            plotter.multiply_by_rhod(snap); 
             res_series[plt](at) = snap_mom(com_x_idx(at), com_z_idx(at));
           }
           else 
@@ -359,7 +356,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           auto tmp = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp); // 1st raw moment / mass [m / kg]
+          arr_t snap(tmp); // 1st raw moment / mass [m / kg]
           if(com_N_c(at) > 0)
             res_series[plt](at) = snap(com_x_idx(at), com_z_idx(at)) / com_N_c(at);
           else
@@ -374,13 +371,13 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t zeroth_raw_mom(tmp); // 0th raw moment / mass [1 / kg]
+          arr_t zeroth_raw_mom(tmp); // 0th raw moment / mass [1 / kg]
           tmp = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]);
-          typename Plotter_t::arr_t first_raw_mom(tmp); // 1st raw moment / mass [m / kg]
+          arr_t first_raw_mom(tmp); // 1st raw moment / mass [m / kg]
           tmp = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]);
-          typename Plotter_t::arr_t second_raw_mom(tmp); // 2nd raw moment / mass [m^2 / kg]
+          arr_t second_raw_mom(tmp); // 2nd raw moment / mass [m^2 / kg]
           tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
-          typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
+          arr_t sd_conc(tmp); // number of SDs
           if(com_N_c(at) > 0)
           {
             double SD_no = sd_conc(com_x_idx(at), com_z_idx(at));
@@ -413,7 +410,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           tmp = plotter.h5load_timestep("sd_conc", at * n["outfreq"]);
-          typename Plotter_t::arr_t sd_conc(tmp); // number of SDs
+          arr_t sd_conc(tmp); // number of SDs
           res_series[plt](at) = sd_conc(com_x_idx(at), com_z_idx(at));
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -424,7 +421,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           auto tmp = plotter.h5load_timestep("th", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
+          arr_t snap(tmp);
           
           res_tmp = is_th_prtrb(snap); // find cells with th>300.1
           snap *= res_tmp; // apply filter
@@ -442,7 +439,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // height of cells with largest gradient of theta
         try
         {
-          typename Plotter_t::arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
+          arr_t th(plotter.h5load_timestep("th", at * n["outfreq"]));
           auto grad = plotter.cent_diff_vert(th);
           auto max_index = blitz::maxIndex(grad, plotter.LastIndex);
           res_series[plt](at) = (blitz::mean(max_index) + 1) * n["dz"];
@@ -455,9 +452,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
+          arr_t snap(tmp);
           snap /= 1e6; // per cm^3
-          snap *= rhod; // b4 it was per milligram
+          plotter.multiply_by_rhod(snap); 
           res_series[plt](at) = blitz::mean(snap); 
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -468,9 +465,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           auto tmp = plotter.h5load_timestep("all_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
+          arr_t snap(tmp);
           snap /= 1e6; // per cm^3
-          snap *= rhod; // b4 it was per milligram
+          plotter.multiply_by_rhod(snap); 
           res_series[plt](at) = blitz::mean(snap); 
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -481,9 +478,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           auto tmp = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
+          arr_t snap(tmp);
           snap /= 1e6; // per cm^3
-          snap *= rhod; // b4 it was per milligram
+          plotter.multiply_by_rhod(snap); 
           res_series[plt](at) = blitz::mean(snap); 
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -493,43 +490,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // cloud droplet (0.5um < r < 25 um) concentration in cloudy grid cells
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          typename Plotter_t::arr_t snap2;
-          snap2.resize(snap.shape());
-          snap2=snap;
-          snap = iscloudy(snap); // cloudiness mask
-          snap2 *= snap;
-          if(blitz::sum(snap) > 0)
-            res_series[plt](at) = blitz::sum(snap2) / blitz::sum(snap); 
-          else
-            res_series[plt](at) = 0;
-        }
-        catch(...) {if(at==first_timestep) data_found[plt]=0;}
-      }
-      else if (plt == "cl_nc_rico")
-      {
-        // cloud droplet (0.5um < r < 25 um) concentration in cloudy grid cells
-        try
-        {
-	  // rico cloud mask
-          auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap = iscloudy_rc_rico(snap); // find cells with rc>1e-5
-          snap(plotter.hrzntl_slice(0)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
-
-          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          snap2 *= rhod; // b4 it was specific moment
-          snap2 /= 1e6; // per cm^3
-
-          snap2 *= snap;
-          if(blitz::sum(snap) > 0)
-            res_series[plt](at) = blitz::sum(snap2) / blitz::sum(snap); 
-          else
-            res_series[plt](at) = 0;
+          auto stats = plotter.cloud_cloudconc_stats_timestep(at * n["outfreq"]);
+          res_series[plt](at) = stats.first;
+          res_series_std_dev[plt](at) = stats.second;
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
@@ -538,45 +501,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // rain drop (25um < r) concentration in cloudy grid cells
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
-          auto tmp2 = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap2(tmp2);
-          snap2 *= rhod; // b4 it was specific moment
-          snap2 /= 1e6; // per cm^3
-          snap2 *= snap;
-          if(blitz::sum(snap) > 0)
-            res_series[plt](at) = blitz::sum(snap2) / blitz::sum(snap); 
-          else
-            res_series[plt](at) = 0;
-        }
-        catch(...) {if(at==first_timestep) data_found[plt]=0;}
-      }
-      else if (plt == "cl_nr_rico")
-      {
-        // rain drop (25um < r) concentration in cloudy grid cells
-        try
-        {
-	  // rico cloud mask
-          auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap = iscloudy_rc_rico(snap); // find cells with rc>1e-5
-          snap(plotter.hrzntl_slice(0)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
-
-          auto tmp2 = plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap2(tmp2);
-          snap2 *= rhod; // b4 it was specific moment
-          snap2 /= 1e6; // per cm^3
-
-          snap2 *= snap;
-          if(blitz::sum(snap) > 0)
-            res_series[plt](at) = blitz::sum(snap2) / blitz::sum(snap); 
-          else
-            res_series[plt](at) = 0;
+          auto stats = plotter.cloud_rainconc_stats_timestep(at * n["outfreq"]);
+          res_series[plt](at) = stats.first;
+          res_series_std_dev[plt](at) = stats.second;
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
@@ -586,48 +513,36 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at *n["outfreq"]) * rhod;
-	        typename Plotter_t::arr_t snap(tmp);
+	        arr_t snap(tmp);
           res_series[plt](at) = blitz::sum(snap)*plotter.CellVol;
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;} 
       }
-      else if (plt == "cloud_base_dycoms")
+      else if (plt == "cloud_base")
       {
         // average cloud base in the domain
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
-          snap(plotter.hrzntl_slice(0)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
           auto cloudy_column = plotter.k_i.copy();
           cloudy_column = blitz::sum(snap, plotter.LastIndex);
           cloudy_column = where(cloudy_column > 0, 1, 0);
           plotter.k_i = where(cloudy_column == 0, 0, plotter.k_i);
           if(blitz::sum(cloudy_column) > 0)
-            res_series[plt](at) = double(blitz::sum(plotter.k_i)) / blitz::sum(cloudy_column) * n["dz"];
+            res_series[plt](at) = double(blitz::sum(plotter.k_i)) / blitz::sum(cloudy_column) * n["refined dz"];
           else
             res_series[plt](at) = 0;
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
-      else if (plt == "cloud_base_precip_dycoms")
+      else if (plt == "cloud_base_precip")
       {
         // domain-averaged (all columns) precipitation at the average cloud base height [mm/day]
         try
         {
-          // -- average cloud base, almost exactly as in "cloud_base_dycoms"... --
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          auto tmp = plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
-          snap(plotter.hrzntl_slice(0)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          // -- average cloud base, almost exactly as in "cloud_base"... --
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
           auto cloudy_column = plotter.k_i.copy();
           cloudy_column = blitz::sum(snap, plotter.LastIndex);
@@ -644,35 +559,32 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           else
           {
             // -- precipitation at this height averaged over all cells, cloudy or not -- 
-            auto prflux = plotter.h5load_prflux_timestep(at * n["outfreq"]); // prflux in [W/m^2]
+            auto prflux = plotter.load_prflux_timestep(at * n["outfreq"]); // prflux in [W/m^2]
             res_series[plt](at) = blitz::mean(prflux(plotter.hrzntl_slice(cloud_base_idx))) / 2264.705 * 3.6 * 24; // convert to [mm/day]
           }
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
-      else if (plt == "min_cloud_base_rico")
+      else if (plt == "min_cloud_base")
       {
         // lowest cloud base in the domain
         try
         {
-          // cloud fraction (cloudy if r_c > 1e-5)
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          snap = iscloudy_rc_rico(snap); 
-          snap(plotter.hrzntl_slice(0)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
           auto cloudy_column = plotter.k_i.copy();
           cloudy_column = blitz::sum(snap, plotter.LastIndex);
           cloudy_column = where(cloudy_column > 0, 1, 0);
           plotter.k_i = where(cloudy_column == 0, 1e6, plotter.k_i); // 1e6 denotes no clouds in the column
           if(blitz::sum(cloudy_column) > 0)
-            res_series[plt](at) = blitz::min(plotter.k_i) * n["dz"];
+            res_series[plt](at) = blitz::min(plotter.k_i) * n["refined dz"];
           else
             res_series[plt](at) = 0;
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
       // average concentration of activated droplets in cloudy cells
-      else if (plt == "cloud_avg_act_conc")
+      else if (plt == "cl_avg_act_conc")
       {
         try
         {
@@ -682,34 +594,56 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
-      // average supersaturation in cells with S>0
-      else if (plt == "cloud_avg_supersat")
+      // average supersaturation in cloudy cells
+      else if (plt == "cl_avg_supersat")
       {
         try
         {
-          auto stats = plotter.positive_supersat_stats_timestep(at * n["outfreq"]);
+          auto stats = plotter.cloud_supersat_stats_timestep(at * n["outfreq"]);
           res_series[plt](at) = stats.first;
           res_series_std_dev[plt](at) = stats.second;
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
-      // spatial average of mean radius of activated droplets in cloudy cells
-      else if (plt == "cl_avg_cloud_rad")
+      // average theta in cloudy cells
+      else if (plt == "cl_avg_th")
       {
         try
         {
-          auto stats = plotter.cloud_meanr_stats_timestep(at * n["outfreq"]);
+          auto stats = plotter.cloud_theta_stats_timestep(at * n["outfreq"]);
+          res_series[plt](at) = stats.first;
+          res_series_std_dev[plt](at) = stats.second;
+        }
+        catch(...) {if(at==first_timestep) data_found[plt]=0;}
+      }
+      // average rv in cloudy cells
+      else if (plt == "cl_avg_rv")
+      {
+        try
+        {
+          auto stats = plotter.cloud_rv_stats_timestep(at * n["outfreq"]);
+          res_series[plt](at) = stats.first;
+          res_series_std_dev[plt](at) = stats.second;
+        }
+        catch(...) {if(at==first_timestep) data_found[plt]=0;}
+      }
+      // spatial average of mean radius of cloud droplets in cloudy cells
+      else if (plt == "cl_avg_cloud_meanr")
+      {
+        try
+        {
+          auto stats = plotter.cloud_cloudmeanr_stats_timestep(at * n["outfreq"]);
           res_series[plt](at) = stats.first;
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
 
-      // spatial average of standard deviation of the acttivated droplets radius distribution in cloudy cells
-      else if (plt == "cloud_avg_std_dev_act_rad")
+      // spatial average of standard deviation of cloud droplet radius distribution in cloudy cells
+      else if (plt == "cl_avg_cloud_stddevr")
       {
         try
         {
-          auto stats = plotter.cloud_stddevr_stats_timestep(at * n["outfreq"]);
+          auto stats = plotter.cloud_cloudstddevr_stats_timestep(at * n["outfreq"]);
           res_series[plt](at) = stats.first;
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -722,8 +656,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           auto tmp = plotter.h5load_timestep("rd_rng000_mom3", at * n["outfreq"]) * 4./3. * 3.14 * rho_dry * 1e3;
-          typename Plotter_t::arr_t snap(tmp);
-          snap *= rhod * plotter.CellVol; // turn mixing ratio in g/kg to total mass in g
+          arr_t snap(tmp);
+          plotter.multiply_by_rhod(snap); 
+          plotter.multiply_by_CellVol(snap); 
           res_series[plt](at) = blitz::sum(snap); 
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -755,21 +690,17 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
-      else if (plt == "cl_acnv25_dycoms")
+      else if (plt == "cl_acnv25")
       {
-        // autconversion rate with rain threshold r=25um (cloudy cells as in Dycoms) [g/(m3*s)]
+        // autconversion rate with rain threshold r=25um [g/(m3*s)]
         // rather coarse estimate, sum of acnv accumulated over ALL cells since the last output
         // is divided by the instantaneous volume of all cloudy cells
         // TODO: output instantaneous acnv rate in libcloud, not the accumulated one?
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
+          arr_t snap(plotter.get_mask(at * n["outfreq"])); // cloud mask
 
-          typename Plotter_t::arr_t acc_acnv(plotter.h5load_timestep("acc_acnv25", at * n["outfreq"]));
+          arr_t acc_acnv(plotter.h5load_timestep("acc_acnv25", at * n["outfreq"]));
           auto tot_acc_acnv = blitz::sum(acc_acnv);
 
           if(blitz::sum(snap) > 0)
@@ -781,69 +712,17 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
-      else if (plt == "cl_accr25_dycoms")
+      else if (plt == "cl_accr25")
       {
-        // accretion rate with rain threshold r=25um (cloudy cells as in Dycoms) [g/(m3*s)]
+        // accretion rate with rain threshold r=25um  [g/(m3*s)]
         // rather coarse estimate, sum of accr accumulated over ALL cells since the last output
         // is divided by the instantaneous volume of all cloudy cells
         // TODO: output instantaneous accr rate in libcloud, not the accumulated one?
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
+          arr_t snap(plotter.get_mask(at * n["outfreq"])); // cloud mask
 
-          typename Plotter_t::arr_t acc_accr(plotter.h5load_timestep("acc_accr25", at * n["outfreq"]));
-          double tot_acc_accr = blitz::sum(acc_accr); 
-
-          if(blitz::sum(snap) > 0)
-            res_series[plt](at) = 4./3. * 3.14166 * 1e6 * (tot_acc_accr - tot_acc_accr_prev) / ((blitz::sum(snap) * plotter.CellVol) * (n["outfreq"] * n["dt"])); 
-          else
-            res_series[plt](at) = 0;
-
-          tot_acc_accr_prev = tot_acc_accr;
-        }
-        catch(...) {if(at==first_timestep) data_found[plt]=0;}
-      }
-      else if (plt == "cl_acnv25_rico")
-      {
-        // autconversion rate with rain threshold r=25um (cloudy cells as in Rico) [g/(m3*s)]
-        // rather coarse estimate, sum of acnv accumulated over ALL cells since the last output
-        // is divided by the instantaneous volume of all cloudy cells
-        // TODO: output instantaneous acnv rate in libcloud, not the accumulated one?
-        try
-        {
-          // cloud fraction (cloudy if r_c > 1e-5)
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          snap = iscloudy_rc_rico(snap); 
-
-          typename Plotter_t::arr_t acc_acnv(plotter.h5load_timestep("acc_acnv25", at * n["outfreq"]));
-          auto tot_acc_acnv = blitz::sum(acc_acnv);
-
-          if(blitz::sum(snap) > 0)
-            res_series[plt](at) =  4./3. * 3.1416 * 1e6 * (tot_acc_acnv - tot_acc_acnv_prev) / ((blitz::sum(snap) * plotter.CellVol) * (n["outfreq"] * n["dt"])); 
-          else
-            res_series[plt](at) = 0;
-
-          tot_acc_acnv_prev = tot_acc_acnv;
-        }
-        catch(...) {if(at==first_timestep) data_found[plt]=0;}
-      }
-      else if (plt == "cl_accr25_rico")
-      {
-        // accretion rate with rain threshold r=25um (cloudy cells as in Rico) [g/(m3*s)]
-        // rather coarse estimate, sum of accr accumulated over ALL cells since the last output
-        // is divided by the instantaneous volume of all cloudy cells
-        // TODO: output instantaneous accr rate in libcloud, not the accumulated one?
-        try
-        {
-          // cloud fraction (cloudy if r_c > 1e-5)
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          snap = iscloudy_rc_rico(snap); 
-
-          typename Plotter_t::arr_t acc_accr(plotter.h5load_timestep("acc_accr25", at * n["outfreq"]));
+          arr_t acc_accr(plotter.h5load_timestep("acc_accr25", at * n["outfreq"]));
           double tot_acc_accr = blitz::sum(acc_accr); 
 
           if(blitz::sum(snap) > 0)
@@ -861,11 +740,11 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           {
-            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; //g/kg
-            typename Plotter_t::arr_t snap(tmp); 
-            snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; //g/kg
-            snap *= rhod; // water per cubic metre (should be wet density...)
-            res_series[plt](at) = blitz::mean(snap); 
+            arr_t rl(plotter.load_rc_timestep(at * n["outfreq"]));
+            arr_t rr(plotter.load_rr_timestep(at * n["outfreq"]));
+	    rl = (rl + rr) * 1e3; // g/kg
+            plotter.multiply_by_rhod(rl); 
+            res_series[plt](at) = blitz::mean(rl); 
           }
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -876,8 +755,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           {
-            typename Plotter_t::arr_t snap(plotter.h5load_rr_timestep(at * n["outfreq"]));
-            snap *= rhod * 1e3; // water per cubic metre (should be wet density...) & g/kg
+            arr_t snap(plotter.load_rr_timestep(at * n["outfreq"]));
+            snap *= 1e3;
+            plotter.multiply_by_rhod(snap); 
             res_series[plt](at) = blitz::mean(snap); 
           }
         }
@@ -889,7 +769,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           {
-            typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+            arr_t snap(plotter.load_rc_timestep(at * n["outfreq"]));
             snap *= rhod * 1e3; // water per cubic metre (should be wet density...) & g/kg
             res_series[plt](at) = blitz::mean(snap); 
           }
@@ -902,9 +782,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           { 
-            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * rhod;
-            typename Plotter_t::arr_t snap(tmp);
-            snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * rhod;
+            auto tmp = plotter.load_rc_timestep(at * n["outfreq"]) * rhod;
+            arr_t snap(tmp);
+            snap += plotter.load_rr_timestep(at * n["outfreq"]) * rhod;
             snap *= plotter.CellVol;
             snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
             snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
@@ -919,8 +799,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 	try
 	{
 	  { 
-            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]);
-            typename Plotter_t::arr_t snap(tmp);
+            auto tmp = plotter.load_rc_timestep(at * n["outfreq"]);
+            arr_t snap(tmp);
             snap *= rhod * plotter.CellVol;
             snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
             snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
@@ -935,8 +815,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 	try
 	{
 	  {
-	    auto tmp = plotter.h5load_rr_timestep(at * n["outfreq"]);
-            typename Plotter_t::arr_t snap(tmp);
+	    auto tmp = plotter.load_rr_timestep(at * n["outfreq"]);
+            arr_t snap(tmp);
             snap *= rhod * plotter.CellVol;
             snap(plotter.hrzntl_slice(0)) = snap(plotter.hrzntl_slice(0))/2;
             snap(plotter.hrzntl_slice(-1)) = snap(plotter.hrzntl_slice(-1))/2;
@@ -950,7 +830,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           {
-            typename Plotter_t::arr_t snap(plotter.h5load_timestep("latent surface flux", at * n["outfreq"], true)); 
+            arr_t snap(plotter.h5load_timestep("latent surface flux", at * n["outfreq"], true)); 
             res_series[plt](at) = blitz::mean(snap); 
           }
         }
@@ -961,27 +841,27 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           {
-            typename Plotter_t::arr_t snap(plotter.h5load_timestep("sensible surface flux", at * n["outfreq"], true)); 
+            arr_t snap(plotter.h5load_timestep("sensible surface flux", at * n["outfreq"], true)); 
             res_series[plt](at) = blitz::mean(snap); 
           }
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }   
-      else if (plt == "er")
+      else if (plt == "er_dycoms")
       {   
         //entrainment rate as in the 2009 Ackerman paper
         // to store total mixingg ratio
         try
         {
           {
-            auto tmp = plotter.h5load_rc_timestep(at * n["outfreq"]) * 1e3; //g/kg
-            typename Plotter_t::arr_t snap(tmp); 
-            snap += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; //g/kg
+            auto tmp = plotter.load_rc_timestep(at * n["outfreq"]) * 1e3; //g/kg
+            arr_t snap(tmp); 
+            snap += plotter.load_rr_timestep(at * n["outfreq"]) * 1e3; //g/kg
             rtot = snap;
           }
           {
             auto tmp = plotter.h5load_timestep("rv", at * n["outfreq"]) * 1e3;
-            typename Plotter_t::arr_t snap(tmp); // vapor mixing ratio [g/kg]
+            arr_t snap(tmp); // vapor mixing ratio [g/kg]
             rtot += snap;
           }
           plotter.k_i = 0;
@@ -996,7 +876,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           auto tmp = plotter.h5load_timestep("w", at * n["outfreq"]);
-          typename Plotter_t::arr_t snap(tmp);
+          arr_t snap(tmp);
           Array<double, 1> mean(n["z"]);
           snap = snap * snap; // 2nd power, w_mean = 0
           // mean variance of w in horizontal
@@ -1010,19 +890,19 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t u(plotter.h5load_timestep("u", at * n["outfreq"]));
+          arr_t u(plotter.h5load_timestep("u", at * n["outfreq"]));
           plotter.subtract_horizontal_mean(u);
           u = u * u;
           res_series[plt](at) = blitz::mean(plotter.horizontal_mean(u));
 
-          typename Plotter_t::arr_t w(plotter.h5load_timestep("w", at * n["outfreq"]));
+          arr_t w(plotter.h5load_timestep("w", at * n["outfreq"]));
           plotter.subtract_horizontal_mean(w);
           w = w * w;
           res_series[plt](at) += blitz::mean(plotter.horizontal_mean(w));
 
           if (Plotter_t::n_dims > 2)
           {
-            typename Plotter_t::arr_t v(plotter.h5load_timestep("v", at * n["outfreq"]));
+            arr_t v(plotter.h5load_timestep("v", at * n["outfreq"]));
             plotter.subtract_horizontal_mean(v);
             v = v * v;
             res_series[plt](at) += blitz::mean(plotter.horizontal_mean(v));
@@ -1030,8 +910,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           
           res_series[plt](at) *= 0.5; // * n["dz"];
 
-          typename Plotter_t::arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
-          typename Plotter_t::arr_t snap;
+          arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
+          arr_t snap;
           snap.reference(tke);
 
           res_series[plt](at) += blitz::mean(plotter.horizontal_mean(snap));
@@ -1042,19 +922,19 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t u(plotter.h5load_timestep("u", at * n["outfreq"]));
+          arr_t u(plotter.h5load_timestep("u", at * n["outfreq"]));
           plotter.subtract_horizontal_mean(u);
           u = u * u;
           res_series[plt](at) = blitz::mean(plotter.horizontal_mean(u));
 
-          typename Plotter_t::arr_t w(plotter.h5load_timestep("w", at * n["outfreq"]));
+          arr_t w(plotter.h5load_timestep("w", at * n["outfreq"]));
           plotter.subtract_horizontal_mean(w);
           w = w * w;
           res_series[plt](at) += blitz::mean(plotter.horizontal_mean(w));
 
           res_series[plt](at) *= 0.5;// * n["dz"];
 
-          typename Plotter_t::arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
+          arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
           if (Plotter_t::n_dims == 3)
           {
             // assume that sgs tke is isotropic, hence 2/3 are in the uw plane
@@ -1072,8 +952,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t u(plotter.h5load_timestep("u", at * n["outfreq"]));
-          typename Plotter_t::arr_t w(plotter.h5load_timestep("w", at * n["outfreq"]));
+          arr_t u(plotter.h5load_timestep("u", at * n["outfreq"]));
+          arr_t w(plotter.h5load_timestep("w", at * n["outfreq"]));
           int step_no = at - first_timestep;
           if(step_no == 0) // the first step
           {
@@ -1123,7 +1003,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
 
           res_series[plt](at) *= 0.5;// * n["dz"];
 
-          typename Plotter_t::arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
+          arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
           if (Plotter_t::n_dims == 3)
           {
             // assume that sgs tke is isotropic, hence 2/3 are in the uw plane
@@ -1140,7 +1020,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
+          arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
           res_series[plt](at) = blitz::mean(plotter.horizontal_mean(tke));
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -1149,15 +1029,15 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t tot_m0(plotter.h5load_timestep("aerosol_rw_mom0", at * n["outfreq"]));
-          tot_m0 += typename Plotter_t::arr_t(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          tot_m0 += typename Plotter_t::arr_t(plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]));
+          arr_t tot_m0(plotter.h5load_timestep("aerosol_rw_mom0", at * n["outfreq"]));
+          tot_m0 += arr_t(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          tot_m0 += arr_t(plotter.h5load_timestep("rain_rw_mom0", at * n["outfreq"]));
 
-          typename Plotter_t::arr_t tke(plotter.h5load_timestep("all_up_mom2", at * n["outfreq"]));
-          tke += typename Plotter_t::arr_t(plotter.h5load_timestep("all_wp_mom2", at * n["outfreq"]));
+          arr_t tke(plotter.h5load_timestep("all_up_mom2", at * n["outfreq"]));
+          tke += arr_t(plotter.h5load_timestep("all_wp_mom2", at * n["outfreq"]));
 
           if (Plotter_t::n_dims > 2)
-            tke += typename Plotter_t::arr_t(plotter.h5load_timestep("all_vp_mom2", at * n["outfreq"]));
+            tke += arr_t(plotter.h5load_timestep("all_vp_mom2", at * n["outfreq"]));
 
           tke = blitz::where(tot_m0 > 0., 0.5 * tke / tot_m0, 0); // tke in each cell
 
@@ -1170,13 +1050,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // gccn (r_d > 2 um) concentration in cloudy grid cells
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
-          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
-          snap2 *= rhod; // b4 it was specific moment
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
+          arr_t snap2(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+          plotter.multiply_by_rhod(snap2); 
           snap2 /= 1e6; // per cm^3
           snap2 *= snap;
           if(blitz::sum(snap) > 0)
@@ -1191,13 +1067,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // gccn (r_d < 2 um) concentration in cloudy grid cells
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
-          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
-          snap2 *= rhod; // b4 it was specific moment
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
+          arr_t snap2(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
+          plotter.multiply_by_rhod(snap2); 
           snap2 /= 1e6; // per cm^3
           snap2 *= snap;
           if(blitz::sum(snap) > 0)
@@ -1211,13 +1083,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
-          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
-          typename Plotter_t::arr_t snap3(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
+          arr_t snap2(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+          arr_t snap3(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
 
           snap2 = where(snap3 > 0, snap2 / snap3, 0); // even if snap3=0, they are noncloudy anyway
           snap2 *= snap;
@@ -1234,13 +1102,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // gccn (r_d > 2 um) mean radius in cloudy grid cells
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
-          typename Plotter_t::arr_t snap_m0(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
-          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6); // in microns
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
+          arr_t snap_m0(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+          arr_t snap_m1(plotter.h5load_timestep("gccn_rw_mom1", at * n["outfreq"]) * 1e6); // in microns
           snap_m0 *= snap;
           snap_m1 *= snap;
           auto tot_gccn_m0 = blitz::sum(snap_m0);
@@ -1256,9 +1120,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // gccn (r_d > 2 um) concentration
         try
         {
-          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
+          arr_t snap2(plotter.h5load_timestep("gccn_rw_mom0", at * n["outfreq"]));
           snap2 /= 1e6; // per cm^3
-          snap2 *= rhod; // b4 it was per milligram
+          plotter.multiply_by_rhod(snap2); 
           res_series[plt](at) = blitz::mean(snap2); 
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -1268,9 +1132,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // gccn (r_d > 2 um) concentration
         try
         {
-          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
+          arr_t snap2(plotter.h5load_timestep("non_gccn_rw_mom0", at * n["outfreq"]));
           snap2 /= 1e6; // per cm^3
-          snap2 *= rhod; // b4 it was per milligram
+          plotter.multiply_by_rhod(snap2); 
           res_series[plt](at) = blitz::mean(snap2); 
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -1282,13 +1146,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // gccn (r_d >= 0.8 um) concentration in cloudy grid cells
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
-          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("rd_geq_0.8um_rw_mom0", at * n["outfreq"]));
-          snap2 *= rhod; // b4 it was specific moment
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
+          arr_t snap2(plotter.h5load_timestep("rd_geq_0.8um_rw_mom0", at * n["outfreq"]));
+          plotter.multiply_by_rhod(snap2); 
           snap2 /= 1e6; // per cm^3
           snap2 *= snap;
           if(blitz::sum(snap) > 0)
@@ -1303,9 +1163,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // gccn (r_d >= 0.8 um) concentration
         try
         {
-          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("rd_geq_0.8um_rw_mom0", at * n["outfreq"]));
+          arr_t snap2(plotter.h5load_timestep("rd_geq_0.8um_rw_mom0", at * n["outfreq"]));
           snap2 /= 1e6; // per cm^3
-          snap2 *= rhod; // b4 it was per milligram
+          plotter.multiply_by_rhod(snap2); 
           res_series[plt](at) = blitz::mean(snap2); 
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -1316,13 +1176,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
-          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("rd_lt_0.8um_rw_mom0", at * n["outfreq"]));
-          snap2 *= rhod; // b4 it was specific moment
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
+          arr_t snap2(plotter.h5load_timestep("rd_lt_0.8um_rw_mom0", at * n["outfreq"]));
+          plotter.multiply_by_rhod(snap2); 
           snap2 /= 1e6; // per cm^3
           snap2 *= snap;
           if(blitz::sum(snap) > 0)
@@ -1336,33 +1192,10 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t snap2(plotter.h5load_timestep("rd_lt_0.8um_rw_mom0", at * n["outfreq"]));
+          arr_t snap2(plotter.h5load_timestep("rd_lt_0.8um_rw_mom0", at * n["outfreq"]));
           snap2 /= 1e6; // per cm^3
-          snap2 *= rhod; // b4 it was per milligram
+          plotter.multiply_by_rhod(snap2); 
           res_series[plt](at) = blitz::mean(snap2); 
-        }
-        catch(...) {if(at==first_timestep) data_found[plt]=0;}
-      }
-
-      else if (plt == "cl_meanr")
-      {
-        // cloud droplets mean radius in cloudy grid cells
-        try
-        {
-          // cloud fraction (cloudy if N_c > 20/cm^3)
-          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          snap *= rhod; // b4 it was specific moment
-          snap /= 1e6; // per cm^3
-          snap = iscloudy(snap); // cloudiness mask
-          typename Plotter_t::arr_t snap_m0(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"])*1e6); // in microns
-          snap_m0 *= snap;
-          snap_m1 *= snap;
-          auto tot_m0 = blitz::sum(snap_m0);
-          if(tot_m0 > 0)
-            res_series[plt](at) = blitz::sum(snap_m1) / tot_m0; 
-          else
-            res_series[plt](at) = 0;
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
       }
@@ -1371,20 +1204,17 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          // find cloud base (cloudy if q_c > 0.1 g/kg)
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          snap = iscloudy_rc(snap); // cloudiness mask
-          //for(int i=0;i<10;++i)
-          //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
+          // find cloud base 
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
 
           // 0-th specific mom of bigrain cloud drops
-          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
           // concentration of bigrain cloud drops at cloud base
           plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
 
           // 1st specific mom of incloud time of bigrain drops
-          typename Plotter_t::arr_t bigrain_inclt_mom1(plotter.h5load_timestep("bigrain_incloud_time_mom1", at * n["outfreq"]));
+          arr_t bigrain_inclt_mom1(plotter.h5load_timestep("bigrain_incl_time_mom1", at * n["outfreq"]));
           // 1st mom of incloud time at cloud base
           plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(bigrain_inclt_mom1, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i);  // same as above
 
@@ -1401,19 +1231,18 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           // find cloud base (cloudy if q_c > 0.1 g/kg)
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          snap = iscloudy_rc(snap); // cloudiness mask
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           //for(int i=0;i<10;++i)
           //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
 
           // 0-th specific mom of bigrain cloud drops
-          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
           // concentration of bigrain cloud drops at cloud base
           plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
 
           // 1st specific mom of rd of bigrain drops
-          typename Plotter_t::arr_t bigrain_rd_mom1(plotter.h5load_timestep("bigrain_rd_mom1", at * n["outfreq"]));
+          arr_t bigrain_rd_mom1(plotter.h5load_timestep("bigrain_rd_mom1", at * n["outfreq"]));
           // 1st mom of rd at cloud base
           plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(bigrain_rd_mom1, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i);  // same as above
 
@@ -1430,19 +1259,18 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           // find cloud base (cloudy if q_c > 0.1 g/kg)
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          snap = iscloudy_rc(snap); // cloudiness mask
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           //for(int i=0;i<10;++i)
           //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
 
           // 0-th specific mom of bigrain cloud drops
-          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
           // concentration of bigrain cloud drops at cloud base
           plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
 
           // 1st specific mom of rd of bigrain drops
-          typename Plotter_t::arr_t bigrain_kappa_mom1(plotter.h5load_timestep("bigrain_kappa_mom1", at * n["outfreq"]));
+          arr_t bigrain_kappa_mom1(plotter.h5load_timestep("bigrain_kappa_mom1", at * n["outfreq"]));
           // 1st mom of rd at cloud base
           plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(bigrain_kappa_mom1, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i);  // same as above
 
@@ -1459,14 +1287,13 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           // find cloud base (cloudy if q_c > 0.1 g/kg)
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          snap = iscloudy_rc(snap); // cloudiness mask
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           //for(int i=0;i<10;++i)
           //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
 
           // 0-th specific mom of bigrain cloud drops
-          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
           // concentration of bigrain cloud drops at cloud base [1/m^3]
           plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
 
@@ -1485,19 +1312,18 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           // find cloud base (cloudy if q_c > 0.1 g/kg)
-          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
-          snap = iscloudy_rc(snap); // cloudiness mask
+          arr_t snap(plotter.get_mask(at * n["outfreq"]));
           //for(int i=0;i<10;++i)
           //  snap(plotter.hrzntl_slice(i)) = 0; // cheat to avoid occasional "cloudy" cell at ground level due to activation from surf flux
           plotter.k_i = blitz::first((snap == 1), plotter.LastIndex); 
 
           // 0-th specific mom of bigrain cloud drops
-          typename Plotter_t::arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
+          arr_t bigrain_conc(plotter.h5load_timestep("bigrain_rw_mom0", at * n["outfreq"]));
           // concentration of bigrain cloud drops at cloud base [1/m^3]
           plotter.tmp_float_hrzntl_slice = plotter.get_value_at_hgt(bigrain_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
 
           // 0-th specific mom of bigrain cloud drops formed on gccn
-          typename Plotter_t::arr_t bigrain_gccn_conc(plotter.h5load_timestep("bigrain_gccn_rw_mom0", at * n["outfreq"]));
+          arr_t bigrain_gccn_conc(plotter.h5load_timestep("bigrain_gccn_rw_mom0", at * n["outfreq"]));
           // concentration of bigrain cloud drops at cloud base [1/m^3]
           plotter.tmp_float_hrzntl_slice2 = plotter.get_value_at_hgt(bigrain_gccn_conc, plotter.k_i) * plotter.get_value_at_hgt(rhod, plotter.k_i); // we need to multiply by rhod here, because different cloud bases can mean different rhod
 
@@ -1545,8 +1371,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t lwc(plotter.h5load_rc_timestep(at * n["outfreq"])); // cloud water, no rain water in pi chamber icmw
-          //res_series[plt](at) = blitz::mean(typename Plotter_t::arr_t(plotter.nowall(lwc, distance_from_walls)));
+          arr_t lwc(plotter.load_rc_timestep(at * n["outfreq"])); // cloud water, no rain water in pi chamber icmw
+          //res_series[plt](at) = blitz::mean(arr_t(plotter.nowall(lwc, distance_from_walls)));
           res_series[plt](at) = blitz::mean(lwc);
         }
         catch(...) {if(at==first_timestep) data_found[plt]=0;}
@@ -1556,7 +1382,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t lwc(plotter.h5load_rc_timestep(at * n["outfreq"])); // cloud water, no rain water in pi chamber icmw
+          arr_t lwc(plotter.load_rc_timestep(at * n["outfreq"])); // cloud water, no rain water in pi chamber icmw
           lwc *= rhod;
           res_series[plt](at) = blitz::mean(lwc);
         }
@@ -1577,7 +1403,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t nc(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          arr_t nc(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
           nc *= rhod; // 1/kg -> 1/m^3
           res_series[plt](at) = blitz::mean(nc);
         }
@@ -1588,7 +1414,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t na(plotter.h5load_timestep("aerosol_rw_mom0", at * n["outfreq"]));
+          arr_t na(plotter.h5load_timestep("aerosol_rw_mom0", at * n["outfreq"]));
           na *= rhod; // 1/kg -> 1/m^3
           res_series[plt](at) = blitz::mean(na);
         }
@@ -1599,19 +1425,19 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t u(plotter.h5load_timestep("u", at * n["outfreq"]));
+          arr_t u(plotter.h5load_timestep("u", at * n["outfreq"]));
           plotter.subtract_horizontal_mean(u);
           u = u * u;
           res_series[plt](at) = blitz::mean(u);
 
-          typename Plotter_t::arr_t w(plotter.h5load_timestep("w", at * n["outfreq"]));
+          arr_t w(plotter.h5load_timestep("w", at * n["outfreq"]));
           plotter.subtract_horizontal_mean(w);
           w = w * w;
           res_series[plt](at) += blitz::mean(w);
 
           if (Plotter_t::n_dims > 2)
           {
-            typename Plotter_t::arr_t v(plotter.h5load_timestep("v", at * n["outfreq"]));
+            arr_t v(plotter.h5load_timestep("v", at * n["outfreq"]));
             plotter.subtract_horizontal_mean(v);
             v = v * v;
             res_series[plt](at) += blitz::mean(v);
@@ -1625,19 +1451,19 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       {
         try
         {
-          typename Plotter_t::arr_t u(plotter.h5load_timestep("u", at * n["outfreq"]));
+          arr_t u(plotter.h5load_timestep("u", at * n["outfreq"]));
           plotter.subtract_horizontal_mean(u);
           u = u * u;
           res_series[plt](at) = blitz::mean(u);
 
-          typename Plotter_t::arr_t w(plotter.h5load_timestep("w", at * n["outfreq"]));
+          arr_t w(plotter.h5load_timestep("w", at * n["outfreq"]));
           plotter.subtract_horizontal_mean(w);
           w = w * w;
           res_series[plt](at) += blitz::mean(w);
 
           if (Plotter_t::n_dims > 2)
           {
-            typename Plotter_t::arr_t v(plotter.h5load_timestep("v", at * n["outfreq"]));
+            arr_t v(plotter.h5load_timestep("v", at * n["outfreq"]));
             plotter.subtract_horizontal_mean(v);
             v = v * v;
             res_series[plt](at) += blitz::mean(v);
@@ -1645,8 +1471,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
           
           res_series[plt](at) *= 0.5; // * n["dz"];
 
-          typename Plotter_t::arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
-          typename Plotter_t::arr_t snap;
+          arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
+          arr_t snap;
           snap.reference(tke);
 
           res_series[plt](at) += blitz::mean(plotter.horizontal_mean(snap));
@@ -1658,9 +1484,9 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // droplets mean radius away from walls
         try
         {
-          typename Plotter_t::arr_t m0(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          typename Plotter_t::arr_t m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"]));
-          //auto tot_m0 = blitz::sum(typename Plotter_t::arr_t(plotter.nowall(m0, distance_from_walls)));
+          arr_t m0(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          arr_t m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"]));
+          //auto tot_m0 = blitz::sum(arr_t(plotter.nowall(m0, distance_from_walls)));
           auto tot_m0 = blitz::sum(m0);
           if(tot_m0 > 0)
             res_series[plt](at) = blitz::sum(m1) / tot_m0; 
@@ -1674,8 +1500,8 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // droplets effective radius away from walls
         try
         {
-          typename Plotter_t::arr_t m2(plotter.h5load_timestep("cloud_rw_mom2", at * n["outfreq"]));
-          typename Plotter_t::arr_t m3(plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]));
+          arr_t m2(plotter.h5load_timestep("cloud_rw_mom2", at * n["outfreq"]));
+          arr_t m3(plotter.h5load_timestep("cloud_rw_mom3", at * n["outfreq"]));
           auto tot_m2 = blitz::sum(m2);
           if(tot_m2 > 0)
             res_series[plt](at) = blitz::sum(m3) / tot_m2; 
@@ -1729,10 +1555,10 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         // relative dispersion (std dev / mean) of droplet radius distribution averaged over cells away from walls 
         try
         {
-          //typename Plotter_t::arr_t m0(plotter.nowall(typename Plotter_t::arr_t(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"])), distance_from_walls));
-          typename Plotter_t::arr_t m0(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          typename Plotter_t::arr_t m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"]));
-          typename Plotter_t::arr_t m2(plotter.h5load_timestep("cloud_rw_mom2", at * n["outfreq"]));
+          //arr_t m0(plotter.nowall(arr_t(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"])), distance_from_walls));
+          arr_t m0(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          arr_t m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"]));
+          arr_t m2(plotter.h5load_timestep("cloud_rw_mom2", at * n["outfreq"]));
           // calculate stddev of radius, store in m2
           m2 = where(m0 > 0,
             m2 / m0 - m1 / m0 * m1 / m0, 0.);
@@ -1758,7 +1584,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
         try
         {
           const float C_E = 0.845;
-          typename Plotter_t::arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
+          arr_t tke(plotter.h5load_timestep("tke", at * n["outfreq"]));
           tke = pow(tke, 3./2.); 
           tke /= n_prof["mix_len"](plotter.LastIndex); // divide by SGS mixing length
 //          res_series[plt](at) = blitz::mean(plotter.nowall(tke, distance_from_walls)) * C_E; 
@@ -1836,7 +1662,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       res_series[plt] /= 1000.;
       res_pos *= 60.;
     }
-    else if (plt == "ract_avg")
+    else if (plt == "cl_ract")
     {
       plot_std_dev = true;
       res_pos *= 60.;
@@ -1845,30 +1671,52 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
     {
       res_pos *= 60.;
     }
-    else if (plt == "cloud_avg_act_conc")
+    else if (plt == "cl_nr")
     {
       plot_std_dev = true;
       res_pos *= 60.;
     }
-    else if (plt == "cloud_std_dev_act_conc")
-    {
-      res_pos *= 60.;
-    }
-    else if (plt == "cloud_avg_supersat")
+    else if (plt == "cl_nc")
     {
       plot_std_dev = true;
       res_pos *= 60.;
     }
-    else if (plt == "cloud_std_dev_supersat")
+    else if (plt == "cl_avg_act_conc")
+    {
+      plot_std_dev = true;
+      res_pos *= 60.;
+    }
+    else if (plt == "cl_std_dev_act_conc")
     {
       res_pos *= 60.;
     }
-    else if (plt == "cloud_avg_act_rad")
+    else if (plt == "cl_avg_supersat")
+    {
+      plot_std_dev = true;
+      res_pos *= 60.;
+    }
+    else if (plt == "cl_avg_th")
+    {
+      plot_std_dev = true;
+      res_pos *= 60.;
+    }
+    else if (plt == "cl_avg_rv")
+    {
+      plot_std_dev = true;
+      res_pos *= 60.;
+    }
+    else if (plt == "cl_std_dev_supersat")
     {
       res_pos *= 60.;
     }
-    else if (plt == "cloud_avg_std_dev_act_rad")
+    else if (plt == "cl_avg_cloud_meanr")
     {
+      plot_std_dev = true;
+      res_pos *= 60.;
+    }
+    else if (plt == "cl_avg_cloud_stddevr")
+    {
+      plot_std_dev = true;
       res_pos *= 60.;
     }
     else if (plt == "sd_conc")
@@ -1923,7 +1771,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
     {
       res_pos *= 60.;
     }
-    else if (plt == "cloud_top_height")
+    else if (plt == "cl_top_height")
     {
       res_pos *= 60.;
     }
@@ -1933,17 +1781,17 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
     }
     else if (plt == "lwp")
     {
-      res_series[plt] *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+      res_series[plt] *= (n["refined z"] - 1) * n["refined dz"]; // top and bottom cells are smaller
     }
     else if (plt == "rwp")
     {
-      res_series[plt] *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
+      res_series[plt] *= (n["refined z"] - 1) * n["refined dz"]; // top and bottom cells are smaller
     }
     else if (plt == "cwp")
     {
       res_series[plt] *= (n["z"] - 1) * n["dz"]; // top and bottom cells are smaller
     }
-    else if (plt == "er")
+    else if (plt == "er_dycoms")
     {
       // central difference, in cm
       Range nofirstlast = Range(1, last_timestep-1);
@@ -2028,7 +1876,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
     gp << "plot '-' with l";
     if(plot_std_dev)
       gp << ", '-' w l, '-' w l";
-    else if(plt == "cl_acnv25_dycoms" || plt == "cl_acnv25_rico" || plt == "cl_accr25_dycoms" || plt == "cl_accr25_rico")
+    else if(plt == "cl_acnv25" || plt == "cl_accr25" )
       gp << ", '-' w l";
     gp << " \n";
 
@@ -2044,7 +1892,7 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       res_series[plt] = res_series[plt] - 2*res_series_std_dev[plt];
       gp.send1d(boost::make_tuple(res_pos, res_series[plt]));
     }
-    if(plt == "cl_acnv25_dycoms" || plt == "cl_acnv25_rico" || plt == "cl_accr25_dycoms" || plt == "cl_accr25_rico")
+    if(plt == "cl_acnv25" || plt == "cl_accr25")
     {
       // acnv/accr rate averaged since the start of the simulation
       int nt = last_timestep - first_timestep + 1;

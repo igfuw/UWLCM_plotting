@@ -1,30 +1,38 @@
 #pragma once
 
 const std::vector<std::string> series_rico({
+"RH_max",
+"cloud_cover",
+"min_cloud_base",
+"inversion_height_rico",
+"tot_water",
+"lwp",
+"rwp",
+"surf_precip",
+"acc_precip",
+"cl_nc",
+"cl_nr",
+"cl_avg_supersat",
+"cl_avg_th",
+"cl_avg_rv",
+"cl_avg_cloud_meanr",
+"cl_avg_cloud_stddevr",
+"wvarmax",
+ "surf_flux_latent",
+ "surf_flux_sensible",
+"sd_conc"
+
+
 // "clb_bigrain_mean_rd",
 // "clb_bigrain_mean_kappa",
 // "clb_bigrain_mean_conc",
 // "clb_bigrain_mean_inclt",
 //, "clb_bigrain_mean_gccn_fraction"
 
-//"cl_acnv25_rico",
-//"cl_accr25_rico",
-"RH_max",
-"cloud_cover_rico",
-"min_cloud_base_rico",
-"inversion_height_rico",
-"tot_water",
-"lwp",
-"rwp",
-"surf_precip",
-"acc_precip"
-,"nc"
-,"nr"
-,"cl_nc_rico"
-,"cl_nr_rico"
-,"cloud_avg_supersat"
-,"wvarmax"
-,"cl_meanr" //TODO: zmienic maske na rico
+//"cl_acnv25",
+//"cl_accr25",
+//,"nc"
+//,"nr"
 //TODO (po usprawnieniu cloud mask i ujednoliceniu tego:
 /*
 ,"cl_avg_cloud_rad"
@@ -34,12 +42,9 @@ const std::vector<std::string> series_rico({
 //,"rd_geq_0.8um_conc"
 //,"cl_rd_lt_0.8um_conc"
 //,"cl_rd_geq_0.8um_conc"
-,"sd_conc"
 
 /*
  "cloud_base",
- "surf_flux_latent",
- "surf_flux_sensible"
  ,"cl_sd_conc"
 //"mass_dry",
  ,"cl_gccn_conc", "gccn_conc"

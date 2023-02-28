@@ -14,7 +14,7 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
     gp << "set ylabel ''\n";
     gp << "set title 'autoconersion rate (r>25um) (cloudy) [g/(m3*s}]'\n";
   }
-  if (plt == "cloud_cover_dycoms" || plt == "cloud_cover_rico")
+  if (plt == "cloud_cover_dycoms" || plt == "cloud_cover")
   {
   //  res_pos *= 60.;
     gp << "set xlabel ''\n";
@@ -63,13 +63,25 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
     gp << "set xlabel 'time [min]'\n";
     gp << "set title 'relative std dev N_c'\n";
   }
-  else if (plt == "cloud_avg_supersat")
+  else if (plt == "cl_avg_supersat")
   {
     gp << "set ylabel '<S> [%]'\n";
     gp << "set xlabel 'time [min]'\n";
-    gp << "set title 'avg supersaturation'\n";
+    gp << "set title 'avg supersaturation in cloudy cells'\n";
   }
-  else if (plt == "cloud_std_dev_supersat")
+  else if (plt == "cl_avg_th")
+  {
+    gp << "set ylabel 'theta [K]'\n";
+    gp << "set xlabel 'time [min]'\n";
+    gp << "set title 'avg theta in cloudy cells'\n";
+  }
+  else if (plt == "cl_avg_rv")
+  {
+    gp << "set ylabel 'r_v [1]'\n";
+    gp << "set xlabel 'time [min]'\n";
+    gp << "set title 'avg rv in cloudy cells'\n";
+  }
+  else if (plt == "cl_std_dev_supersat")
   {
     gp << "set ylabel 'sigma(S) / <S>'\n";
     gp << "set xlabel 'time [min]'\n";
@@ -86,6 +98,18 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
     gp << "set ylabel '<sigma(r)> [um]'\n";
     gp << "set xlabel 'time [min]'\n";
     gp << "set title 'average std dev of radius of activated droplets'\n";
+  }
+  else if (plt == "cl_avg_cloud_meanr")
+  {
+    gp << "set ylabel '<r_{mean}> [um]'\n";
+    gp << "set xlabel 'time [min]'\n";
+    gp << "set title 'mean radius of cloud droplets in cloud'\n";
+  }
+  else if (plt == "cl_avg_cloud_stddevr")
+  {
+    gp << "set ylabel '<sigma(r)> [um]'\n";
+    gp << "set xlabel 'time [min]'\n";
+    gp << "set title 'std. dev. of radius of cloud droplets in cloud'\n";
   }
   else if (plt == "sd_conc")
   {
@@ -253,7 +277,7 @@ void gnuplot_series_set_labels(Gnuplot &gp, std::string plt)
     gp << "set xlabel ''\n";
     gp << "set ylabel ''\n";
   }
-  else if (plt == "min_cloud_base_rico")
+  else if (plt == "min_cloud_base")
   {
     gp << "set title 'lowest cloud base [m]'\n";
     gp << "set xlabel ''\n";

@@ -4,7 +4,7 @@
 
 // 3d version
 template<>
-class Plotter_t<3> : public PlotterCommon 
+class Plotter_t<3> : public PlotterH5 
 {
   public:
   static const int n_dims = 3;
@@ -15,10 +15,10 @@ class Plotter_t<3> : public PlotterCommon
   arr_t dv;
 
   protected:
-  using parent_t = PlotterCommon;
+  using parent_t = PlotterH5;
   hsize_t n[3];
   enum {x, y, z};
-  arr_t tmp, tmp_srfc;
+  arr_t tmp, tmp_srfc, tmp_ref;
   blitz::Range yrange;
 
   public:
@@ -36,15 +36,17 @@ class Plotter_t<3> : public PlotterCommon
       cnt[3] = { n[x],  n[y],  srfc ? 1 : n[z] }, 
       off[3] = { 0,     0,     0    };
     this->h5s.selectHyperslab( H5S_SELECT_SET, cnt, off);
+
+    arr_t &arr(tmp.extent(0) == n[x] ? tmp : tmp_ref); // crude check if it is refined or normal data; assume surface data is never refined
   
     hsize_t ext[3] = {
-      hsize_t(tmp.extent(0)), 
-      hsize_t(tmp.extent(1)), 
-      hsize_t(srfc ? tmp_srfc.extent(2) : tmp.extent(2)) 
+      hsize_t(arr.extent(0)), 
+      hsize_t(arr.extent(1)), 
+      hsize_t(srfc ? tmp_srfc.extent(2) : arr.extent(2)) 
     };
-    this->h5d.read(srfc ? tmp_srfc.data() : tmp.data(), H5::PredType::NATIVE_FLOAT, H5::DataSpace(3, ext), h5s);
+    this->h5d.read(srfc ? tmp_srfc.data() : arr.data(), H5::PredType::NATIVE_FLOAT, H5::DataSpace(3, ext), h5s);
 
-    return blitz::safeToReturn((srfc ? tmp_srfc : tmp) + 0);
+    return blitz::safeToReturn((srfc ? tmp_srfc : arr) + 0);
   }
 
   auto h5load_timestep(
@@ -235,6 +237,44 @@ class Plotter_t<3> : public PlotterCommon
     // other dataset are of the size x*z, resize tmp
     tmp.resize(n[0]-1, n[1]-1, n[2]-1);
     tmp_srfc.resize(n[0]-1, n[1]-1, 1);
+
+    // init refined data
+    try
+    {
+      this->h5f.openDataSet("X refined").getSpace().getSimpleExtentDims(n, NULL); 
+      this->map["refined x"] = n[0]-1;
+      this->map["refined y"] = n[1]-1;
+      this->map["refined z"] = n[2]-1;
+      tmp_ref.resize(n[0], n[1], n[2]);
+      h5load(file + "/const.h5", "X refined");
+      this->map["refined dx"] = tmp_ref(1,0,0) - tmp_ref(0,0,0);
+      h5load(file + "/const.h5", "Y refined");
+      this->map["refined dy"] = tmp_ref(0,1,0) - tmp_ref(0,0,0);
+      h5load(file + "/const.h5", "Z refined");
+      this->map["refined dz"] = tmp_ref(0,0,1) - tmp_ref(0,0,0);
+      this->CellVol_ref = this->map["refined dx"] * this->map["refined dy"] * this->map["refined dz"];
+      tmp_ref.resize(n[0]-1, n[1]-1, n[2]-1);
+    }
+    catch(...) // for pre-refinement simulations that didnt store refined stuff
+    {
+      this->map["refined x"] = this->map["x"]; 
+      this->map["refined y"] = this->map["y"]; 
+      this->map["refined z"] = this->map["z"]; 
+      this->map["refined dx"] = this->map["dx"]; 
+      this->map["refined dy"] = this->map["dy"]; 
+      this->map["refined dz"] = this->map["dz"]; 
+      this->CellVol_ref = this->CellVol;
+      tmp_ref.resize(tmp.shape());
+    }
+
+    for (auto const& x : this->map)
+{
+    std::cout << x.first  // string (key)
+              << ':'
+              << x.second // string's value
+              << std::endl;
+}
+
   }
 };
 

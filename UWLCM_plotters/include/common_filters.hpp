@@ -26,11 +26,11 @@ double is_th_prtrb(double x)
 }
 BZ_DECLARE_FUNCTION(is_th_prtrb)
 
-double iscloudy(double x)
+double iscloudy_nc_dycoms(double x)
 {
   return x > 20. ? 1. : 0.; 
 }
-BZ_DECLARE_FUNCTION(iscloudy)
+BZ_DECLARE_FUNCTION(iscloudy_nc_dycoms)
 
 double iscloudy_sat(double x)
 {

@@ -18,6 +18,8 @@ def read_my_var(file_obj, var_name):
     arr_name = file_obj.readline() 
     if(str(arr_name).strip() == str(var_name).strip()):
       return read_my_array(file_obj)
+    elif(len(arr_name)==0):
+      return np.empty(0)
 
 #def plot_my_array(axarr, plot_iter, time, val, nploty, xlabel=None, ylabel=None, varlabel=None , linestyle='--', dashes=(5,2), xlim=None, ylim=None, xscale="linear", yscale="linear"):
 #  x = int(plot_iter / nploty)

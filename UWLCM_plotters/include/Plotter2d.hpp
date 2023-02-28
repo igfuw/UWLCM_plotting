@@ -1,13 +1,13 @@
 #pragma once
 #include "common.hpp"
-#include "PlotterCommon.hpp"
+#include "PlotterH5.hpp"
 
 template<int NDims>
-class Plotter_t : public PlotterCommon {};
+class Plotter_t : public PlotterH5 {};
 
 // 2d version
 template<>
-class Plotter_t<2> : public PlotterCommon 
+class Plotter_t<2> : public PlotterH5 
 {
   public:
   static const int n_dims = 2;
@@ -18,7 +18,7 @@ class Plotter_t<2> : public PlotterCommon
   arr_t dv;
 
   protected:
-  using parent_t = PlotterCommon;
+  using parent_t = PlotterH5;
   hsize_t n[2];
   enum {x, z};
   arr_t tmp, tmp_srfc;
