@@ -14,7 +14,7 @@ class PlotterCommon
   std::map<std::string, double> map;
   std::map<std::string, arr_prof_t> map_prof;
   blitz::Array<float, 1> timesteps;
-  double CellVol, DomainSurf, DomainVol;
+  double CellVol, DomainSurf, DomainVol, CellVol_ref;
 
   protected:
   H5::H5File h5f;
@@ -61,6 +61,7 @@ class PlotterCommon
     auto attr = h5g.openAttribute(attr_name);
     notice_macro(std::string("about to read attribute value"))
     attr.read(attr.getDataType(), &ret);
+    notice_macro(std::string("attribute value read: ") + std::to_string(ret))
     return ret;
   }
 
@@ -120,6 +121,20 @@ class PlotterCommon
       h5s.getSimpleExtentDims(&n, NULL);
       map_prof.emplace("rhod", arr_prof_t(n));
       h5d.read(map_prof["rhod"].data(), H5::PredType::NATIVE_FLOAT);
+
+      // read dry air density profile on refined grid
+      try
+      {
+        h5load(file + "/const.h5", "refined rhod");
+        h5s.getSimpleExtentDims(&n, NULL);
+        map_prof.emplace("refined rhod", arr_prof_t(n));
+        h5d.read(map_prof["refined rhod"].data(), H5::PredType::NATIVE_FLOAT);
+      }
+      catch(...) // for pre-refinement simulations, use rhod as refined rhod
+      {
+        map_prof.emplace("refined rhod", map_prof["rhod"].copy());
+	std::cerr << "refined rhod as copy of rhod: " << map_prof["refined rhod"];
+      }
     }
   }
 };
