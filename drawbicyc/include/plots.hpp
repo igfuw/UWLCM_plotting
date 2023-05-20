@@ -60,7 +60,7 @@ class Plots
       fields.insert(fields.end(), fields_Lasher_Trapp.begin(), fields_Lasher_Trapp.end());
     }
     else if(type == "cumulus_congestus") {
-     // profs.insert(profs.end(), profs_Cumulus_Congestus.begin(), profs_Cumulus_Congestus.end());
+      profs.insert(profs.end(), profs_Cumulus_Congestus.begin(), profs_Cumulus_Congestus.end());
       series.insert(series.end(), series_Cumulus_Congestus.begin(), series_Cumulus_Congestus.end());
      // fields.insert(fields.end(), fields_Cumulus_Congestus.begin(), fields_Cumulus_Congestus.end());
     }

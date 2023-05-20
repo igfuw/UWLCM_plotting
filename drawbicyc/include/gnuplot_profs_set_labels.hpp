@@ -13,7 +13,8 @@ void gnuplot_profs_set_labels(Gnuplot &gp, std::string plt, const bool normalize
 
   if (plt == "rliq")
   {
-    gp << "set title 'liquid water [g/kg]'\n";
+    //gp << "set title 'liquid water [g/kg]'\n";
+      gp << "set title 'liquid water in cloudy cells [g/kg]'\n";
   }
   if (plt == "gccn_rw")
   {
@@ -78,6 +79,10 @@ void gnuplot_profs_set_labels(Gnuplot &gp, std::string plt, const bool normalize
   if (plt == "actrw_rd")
   {
     gp << "set title 'activated (rw>rc) droplets mean dry radius'\n";
+  }
+  if (plt == "actrw_reff_cl")
+  {
+    gp << "set title 'effective radius of activated droplets (r > rc) in cloudy cells'\n";
   }
   else if (plt == "rv")
   {
@@ -214,4 +219,31 @@ void gnuplot_profs_set_labels(Gnuplot &gp, std::string plt, const bool normalize
   {
     gp << "set title 'mean cloud droplet radius [um]'\n";
   }
+  else if (plt == "actrw_mom1")
+  {
+    gp << "set title 'mean radius of actrw droplets [um]'\n";
+  }
+  else if (plt == "actrw_mom2")
+  {
+    gp << "set title 'variance of actrw droplet size distribution [um^2] * 1e3'\n";
+  }
+  else if (plt == "actrw_sd")
+  {
+    gp << "set title 'standard deviation of actrw droplet size distribution [um]'\n";
+  }
+    else if (plt == "actrw_rw_cl_conc")
+  {
+    gp << "set title 'concentration of actrw droplet in cloudy cells [cm^-3]'\n";
+  }
+  else if (plt == "actrw_rw_cl")
+  {
+    gp << "set title 'mean radius of actrw droplet in cloudy cells [um]'\n";
+  }
+    else if (plt == "disp_r")
+  {
+    gp << "set title 'relative dispersion of r_{drop} [1]'\n";
+  }
+
+
+
 }
