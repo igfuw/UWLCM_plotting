@@ -121,8 +121,27 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         res += plotter.h5load_rr_timestep(at * n["outfreq"]) * 1e3; // rain
         typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
         res_tmp = iscloudy_rc_rico(snap);
-        res_prof_sum = plotter.horizontal_sum(res_tmp);
-        res_prof_hlpr = where(prof_tmp > 0, plotter.horizontal_sum(res) / res_prof_sum, 0);
+        res *= res_tmp;
+        prof_tmp = plotter.horizontal_sum(res_tmp);
+        res_prof_hlpr = where(prof_tmp > 0, plotter.horizontal_sum(res) / prof_tmp, 0);
+      }
+      if (plt == "actrw_rw_cl_conc")
+      {
+        // concentration of activated droplets (r > rc) in cloudy cells
+        {
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          res_tmp = iscloudy_rc_rico(snap);
+        }
+        {
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp2 = snap;
+          res_tmp2 *= rhod / 1e6; // per cm^3
+        }
+        // cloudy only
+        prof_tmp = plotter.horizontal_sum(res_tmp); 
+        res_tmp2 *= res_tmp;
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp2) / prof_tmp, 0);
       }
 /*      if (plt == "cloud_water_std")
       {
@@ -485,7 +504,29 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         {
           auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
           typename Plotter_t::arr_t snap(tmp);
-          res_tmp = where(res_tmp > 0 , res_tmp / snap, res_tmp);
+          res_tmp = where(snap > 0 , res_tmp / snap, 0);
+        }
+        {
+          typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+          res_tmp2 = iscloudy_rc_rico(snap);
+          res_tmp *= res_tmp2;
+        }
+        // mean only over downdraught cells
+        prof_tmp = plotter.horizontal_sum(res_tmp2); // number of downdraft cells on a given level
+        res_prof_hlpr = where(prof_tmp > 0 , plotter.horizontal_sum(res_tmp) / prof_tmp, 0);
+      }
+      if (plt == "actrw_rw_cl_sigma")
+      {
+        // sigma(radius) of activated droplets (r > rc) in cloudy cells
+        {
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]) * 1e6;
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = snap; 
+        }
+        {
+          auto tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+          typename Plotter_t::arr_t snap(tmp);
+          res_tmp = where(snap > 0 , res_tmp / snap, 0);
         }
         {
           typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
@@ -898,9 +939,14 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
       {
 	// precipitation flux(doesnt include vertical volicty w!)
         { 
-          res = plotter.h5load_prflux_timestep(at * n["outfreq"]);
+          //res = plotter.dv;
+          //std::cerr << plotter.h5load_prflux_timestep(at * n["outfreq"]);
+	  //res = (plotter.dv).shape();
+          res = plotter.h5load_prflux_timestep(at * n["outfreq"]); // plotter.dv;
           res_prof_hlpr = plotter.horizontal_mean(res); // average in x
-        }
+	  //res_prof_hlpr = plotter.horizontal_sum(res)/122.; // average in x
+          
+	}
 	// add vertical velocity to precipitation flux (3rd mom of cloud drops * w)
 /*
         { 
@@ -1051,11 +1097,95 @@ void plot_profiles(Plotter_t plotter, Plots plots, std::string type, const bool 
         res = where(res > 0 , res / res_tmp, res);
         res_prof_hlpr = plotter.horizontal_mean(res); // average in x
       }
+      if (plt == "actrw_mom1")
+      {
+        // mean radius of actrw droplets
+	res = plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]) * 1e6;
+        res_tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+        res = where(res > 0 , res / res_tmp, res);
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+      }
+      else if (plt == "actrw_mom2")
+      {
+        // variance of actrw droplet size distribution
+        res = plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]) * 1e6 * 1e3; // convert to (um)^2 * 1e3
+	res_tmp = plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]);
+        res = where(res > 0 , res / res_tmp, res);
+        res_prof_hlpr = plotter.horizontal_mean(res); // average in x
+      }
+      else if (plt == "disp_r")
+      {
+        // relative dispersion (std dev / mean) of droplet radius distribution averaged over cells away from walls
+        //typename Plotter_t::arr_t m0(plotter.nowall(typename Plotter_t::arr_t(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"])), distance_from_walls));
+        typename Plotter_t::arr_t m0(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
+        typename Plotter_t::arr_t m1(plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]));
+        typename Plotter_t::arr_t m2(plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]));
 
+        // calculate stddev of radius, store in m2
+        m2 = where(m0 > 0,
+            m2 / m0 - m1 / m0 * m1 / m0 , 0.);
 
+        // might be slightly negative due to numerical errors
+        m2 = where(m2 < 0, 0, m2);
+        m2 = sqrt(m2); // sqrt(variance)
+
+        //calculate mean radius, store in m1
+        m1 = where(m0 > 0,
+            m1 / m0, 0.);
+        
+        res = where(m1 > 0 , m2 / m1 , 0);
+
+        typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        res_tmp = iscloudy_rc_rico(snap);
+        res *= res_tmp;
+        prof_tmp = plotter.horizontal_sum(res_tmp);
+
+        res_prof_hlpr = where(prof_tmp > 0, plotter.horizontal_sum(res) / prof_tmp, 0);
+     }
+     else if (plt == "sigma_r")
+     {
+        // std dev of droplet radius distribution averaged over cells 
+        //typename Plotter_t::arr_t m0(plotter.nowall(typename Plotter_t::arr_t(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"])), distance_from_walls));
+        typename Plotter_t::arr_t m0(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
+        typename Plotter_t::arr_t m1(plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]));
+        typename Plotter_t::arr_t m2(plotter.h5load_timestep("actrw_rw_mom2", at * n["outfreq"]));
+
+        // calculate stddev of radius, store in m2
+        m2 = where(m0 > 0,
+            m2 / m0 - m1 / m0 * m1 / m0 , 0.);
+
+        // might be slightly negative due to numerical errors
+        m2 = where(m2 < 0, 0, m2);
+        res = sqrt(m2); // sqrt(variance)
+        
+        typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        res_tmp = iscloudy_rc_rico(snap);
+        res *= res_tmp;
+        prof_tmp = plotter.horizontal_sum(res_tmp);
+
+        res_prof_hlpr = where(prof_tmp > 0, plotter.horizontal_sum(res) / prof_tmp, 0);
+     }
+     else if (plt == "mean_r")
+     {
+        // relative dispersion (std dev / mean) of droplet radius distribution averaged over cells away from walls
+        //typename Plotter_t::arr_t m0(plotter.nowall(typename Plotter_t::arr_t(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"])), distance_from_walls));
+        typename Plotter_t::arr_t m0(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
+        typename Plotter_t::arr_t m1(plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"]));
+
+        //calculate mean radius, store in m1
+        res = where(m0 > 0,
+            m1 / m0, 0.);
+        
+        typename Plotter_t::arr_t snap(plotter.h5load_rc_timestep(at * n["outfreq"]));
+        res_tmp = iscloudy_rc_rico(snap);
+        res *= res_tmp;
+        prof_tmp = plotter.horizontal_sum(res_tmp);
+
+        res_prof_hlpr = where(prof_tmp > 0, plotter.horizontal_sum(res) / prof_tmp, 0);
+     }
 
 // ======================================================================================
-
+	
       if(normalize)
       {
         // interpolate profile to uniform vertical grid (height normalized by inversion height)

@@ -1300,15 +1300,16 @@ void plot_series(Plotter_t plotter, Plots plots, std::string type)
       else if (plt == "cl_meanr")
       {
         // cloud droplets mean radius in cloudy grid cells
+        // modified for actrw_mom1. cloud -> actrw
         try
         {
           // cloud fraction (cloudy if N_c > 20/cm^3)
-          typename Plotter_t::arr_t snap(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
+          typename Plotter_t::arr_t snap(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
           snap *= rhod; // b4 it was specific moment
           snap /= 1e6; // per cm^3
           snap = iscloudy(snap); // cloudiness mask
-          typename Plotter_t::arr_t snap_m0(plotter.h5load_timestep("cloud_rw_mom0", at * n["outfreq"]));
-          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("cloud_rw_mom1", at * n["outfreq"])*1e6); // in microns
+          typename Plotter_t::arr_t snap_m0(plotter.h5load_timestep("actrw_rw_mom0", at * n["outfreq"]));
+          typename Plotter_t::arr_t snap_m1(plotter.h5load_timestep("actrw_rw_mom1", at * n["outfreq"])*1e6); // in microns
           snap_m0 *= snap;
           snap_m1 *= snap;
           auto tot_m0 = blitz::sum(snap_m0);

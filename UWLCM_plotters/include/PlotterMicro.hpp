@@ -106,10 +106,16 @@ class PlotterMicro_t : public Plotter_t<NDims>
   {
     if(this->micro == "lgrngn")
     {
+
+      //std::cout << "CellVol = " << this->CellVol << std::endl;
+      //std::cout << "dv = " << this->dv << std::endl;
+      //std::cerr << this->dv;
       res = this->h5load_timestep("precip_rate", at)
-              *  4./3 * 3.14 * 1e3 // to get mass
-              / this->CellVol    // averaged over cell volume, TODO: make precip rate return specific moment? wouldnt need the dx and dy
-              * L_evap;
+            *  4./3 * 3.14 * 1e3 // to get mass
+              //5000.
+	    / this->dv    // averaged over cell volume, TODO: make precip rate return specific moment? wouldnt need the dx and dy
+             // this->CellVol    // averaged over cell volume, TODO: make precip rate return specific moment? wouldnt need the dx and dy
+            * L_evap;
     }
     else if(this->micro == "blk_1m")
       try

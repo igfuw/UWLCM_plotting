@@ -37,7 +37,7 @@ int main(int argc, char** argv)
     throw std::runtime_error("Unrecognized 'type' option, only dycoms, rico, moist_thermal, pi_chamber, pi_chamber_icmw, cumulus_congestus, gccn_ccn_conc  available now");//, base_prflux_vs_clhght available now");
 
   // should profiles be normalized by inversion height
-  //const bool normalize_prof = type == "dycoms";
+  const bool normalize_prof = type == "dycoms";
 
   // parse dir name
   std::string
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
   {
 
     if(flag_series)   plot_series(PlotterMicro_t<2>(h5, micro), plots, type);
-//    if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro), plots, type, normalize_prof);
+    if(flag_profiles) plot_profiles(PlotterMicro_t<2>(h5, micro), plots, type, normalize_prof);
     //if(flag_fields)   plot_fields(PlotterMicro_t<2>(h5, micro), plots, type);
     //if(flag_qv_qc_2_6_10_min)   plot_qv_qc_2_6_10_min(PlotterMicro_t<2>(h5, micro));
   }
